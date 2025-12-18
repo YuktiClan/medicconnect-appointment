@@ -1,6 +1,8 @@
 package com.medicconnect.medicconnect_appointment.service;
 
 import com.medicconnect.medicconnect_appointment.dto.AppointmentSlotDTO;
+import com.medicconnect.medicconnect_appointment.dto.BreakDTO;
+import com.medicconnect.medicconnect_appointment.dto.DoctorBreakResponseDTO;
 import com.medicconnect.medicconnect_appointment.model.AppointmentSlot;
 import com.medicconnect.medicconnect_appointment.model.DoctorBreak;
 import com.medicconnect.medicconnect_appointment.model.DoctorSchedule;
@@ -166,6 +168,10 @@ public class AppointmentSlotService {
 
         return dto;
     }
+
+
+
+
 
 
 }

@@ -14,11 +14,9 @@ import com.medicconnect.medicconnect_appointment.repo.DoctorScheduleRepository;
 import org.hl7.fhir.r4.model.Schedule;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -130,6 +128,43 @@ public class DoctorScheduleService {
         response.setSlots(slotDTOs);
 
         return response;
+    }
+
+    public DoctorSchedule updateSchedule(Long doctorId, Long scheduleId, Schedule fhirSchedule) {
+        // Fetch existing schedule
+        DoctorSchedule existing = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+
+        // Optional: Verify doctor owns this schedule
+        if (!existing.getDoctorId().equals(doctorId)) {
+            throw new RuntimeException("Doctor does not own this schedule");
+        }
+        Date startDate = fhirSchedule.getPlanningHorizon().getStart();
+        Date endDate = fhirSchedule.getPlanningHorizon().getEnd();
+
+        LocalTime startTime = Instant.ofEpochMilli(startDate.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalTime();
+
+        LocalTime endTime = Instant.ofEpochMilli(endDate.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalTime();
+        // Map FHIR Schedule fields to your entity
+        existing.setStartTime(startTime);
+        existing.setEndTime(endTime);
+        Date effectiveStart = fhirSchedule.getPlanningHorizon().getStart();
+        Date effectiveEnd = fhirSchedule.getPlanningHorizon().getEnd();
+
+        existing.setEffectiveFrom(Instant.ofEpochMilli(effectiveStart.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate());
+
+        if (effectiveEnd != null) {
+            existing.setEffectiveTo(Instant.ofEpochMilli(effectiveEnd.getTime())
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate());
+        }
+        return scheduleRepository.save(existing);
     }
 
 

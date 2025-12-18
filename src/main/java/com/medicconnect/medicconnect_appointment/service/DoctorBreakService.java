@@ -71,5 +71,38 @@ public class DoctorBreakService {
 
         return response;
     }
+
+    public DoctorBreakResponseDTO updateBreak(Long doctorId, Long scheduleId, Long breakId,
+                                              LocalTime startTime, LocalTime endTime) {
+
+        // 1. Fetch existing break
+        DoctorBreak existingBreak = breakRepository.findById(breakId)
+                .orElseThrow(() -> new RuntimeException("Break not found"));
+
+        // 2. Validate doctor ownership via schedule
+        if (!existingBreak.getDoctorSchedule().getDoctorId().equals(doctorId)) {
+            throw new RuntimeException("Doctor does not own this break");
+        }
+
+        // 3. Validate schedule ID
+        if (!existingBreak.getDoctorSchedule().getId().equals(scheduleId)) {
+            throw new RuntimeException("Break does not belong to this schedule");
+        }
+
+        // 4. Update times
+        existingBreak.setStartTime(startTime);
+        existingBreak.setEndTime(endTime);
+
+        // 5. Save updated break
+        DoctorBreak savedBreak = breakRepository.save(existingBreak);
+
+        DoctorBreakResponseDTO dto = new DoctorBreakResponseDTO();
+        dto.setId(savedBreak.getId());
+        dto.setStartTime(savedBreak.getStartTime().toString());
+        dto.setEndTime(savedBreak.getEndTime().toString());
+        dto.setActive(savedBreak.getActive());
+
+        return dto;
+    }
 }
 

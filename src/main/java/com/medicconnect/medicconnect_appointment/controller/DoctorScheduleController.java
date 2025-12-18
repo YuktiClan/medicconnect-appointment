@@ -20,6 +20,8 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -106,5 +108,44 @@ public class DoctorScheduleController {
         AppointmentSlotDTO blockedSlot = slotService.blockSlot(doctorId, slotId, reason);
         return ResponseEntity.ok(blockedSlot);
     }
+
+    @PutMapping(path = "/{doctorId}/schedule/{scheduleId}",
+            consumes = "application/json", produces = "application/json")
+    public ResponseEntity<DoctorSchedule> updateDoctorSchedule(
+            @PathVariable Long doctorId,
+            @PathVariable Long scheduleId,
+            @RequestBody String scheduleJson // raw FHIR JSON
+    ) {
+        // 1. Parse JSON into FHIR Schedule POJO
+        IParser parser = fhirContext.newJsonParser();
+        Schedule fhirSchedule = parser.parseResource(Schedule.class, scheduleJson);
+
+        // 2. Call service to update schedule
+        DoctorSchedule updatedSchedule = scheduleService.updateSchedule(doctorId, scheduleId, fhirSchedule);
+
+        // 3. Return updated schedule
+        return ResponseEntity.ok(updatedSchedule);
+    }
+
+    @PutMapping("/{doctorId}/schedule/{scheduleId}/breaks/{breakId}")
+    public ResponseEntity<DoctorBreakResponseDTO> updateBreak(
+            @PathVariable Long doctorId,
+            @PathVariable Long scheduleId,
+            @PathVariable Long breakId,
+            @RequestBody BreakDTO breakDTO
+    ) {
+        // Convert string times ("HH:mm:ss") to LocalTime
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        LocalTime startTime = LocalTime.parse(breakDTO.getStartTime(), formatter);
+        LocalTime endTime = LocalTime.parse(breakDTO.getEndTime(), formatter);
+
+        // Call service to update break
+        DoctorBreakResponseDTO updatedBreak = breakService.updateBreak(
+                doctorId, scheduleId, breakId, startTime, endTime);
+
+        return ResponseEntity.ok(updatedBreak);
+    }
+
+
 
 }
