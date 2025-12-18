@@ -168,4 +168,17 @@ public class DoctorScheduleService {
     }
 
 
+    public int deleteSchedulesInRange(Long doctorId, LocalDate fromDate, LocalDate toDate) {
+        List<DoctorSchedule> schedules = scheduleRepository.findByDoctorIdAndEffectiveFromBetween(
+                doctorId, fromDate, toDate);
+
+        if (schedules.isEmpty()) {
+            throw new RuntimeException("No schedules found in the specified range");
+        }
+
+        scheduleRepository.deleteAll(schedules);
+
+        return schedules.size();
+    }
+
 }

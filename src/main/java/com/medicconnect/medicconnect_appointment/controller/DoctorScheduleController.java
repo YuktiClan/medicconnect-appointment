@@ -146,6 +146,26 @@ public class DoctorScheduleController {
         return ResponseEntity.ok(updatedBreak);
     }
 
+    @PutMapping("/{doctorId}/slots/{slotId}/unblock")
+    public ResponseEntity<AppointmentSlotDTO> unblockSlot(
+            @PathVariable Long doctorId,
+            @PathVariable Long slotId
+    ) {
+        AppointmentSlotDTO dto = slotService.unblockSlot(doctorId, slotId);
+        return ResponseEntity.ok(dto);
+    }
+
+    @DeleteMapping("/{doctorId}/schedule")
+    public ResponseEntity<String> deleteDoctorSchedule(
+            @PathVariable Long doctorId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
+    ) {
+        // Call service to delete schedules in the date range
+        int deletedCount = scheduleService.deleteSchedulesInRange(doctorId, fromDate, toDate);
+
+        return ResponseEntity.ok(deletedCount + " schedule(s) deleted successfully");
+    }
 
 
 }

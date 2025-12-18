@@ -170,6 +170,40 @@ public class AppointmentSlotService {
     }
 
 
+    public AppointmentSlotDTO unblockSlot(Long doctorId, Long slotId) {
+        // Step 1: Get slot
+        AppointmentSlot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("Slot not found"));
+
+        // Step 2: Check if slot belongs to doctor
+        if (!slot.getDoctorSchedule().getDoctorId().equals(doctorId)) {
+            throw new RuntimeException("Doctor does not own this slot");
+        }
+
+        // Step 3: Check if slot is blocked (optional)
+        if (slot.getStatus() != SlotStatus.BLOCKED) {
+            throw new RuntimeException("Slot is not blocked");
+        }
+
+        // Step 4: Unblock the slot
+        slot.setStatus(SlotStatus.AVAILABLE); // or your default status for free slots
+        slot.setActive(true); // keep active true
+
+        slotRepository.save(slot);
+
+        // Step 5: Convert to DTO
+        AppointmentSlotDTO dto = new AppointmentSlotDTO();
+        dto.setId(slot.getId());
+        dto.setStartTime(slot.getStartTime().toString());
+        dto.setEndTime(slot.getEndTime().toString());
+        dto.setStatus(slot.getStatus().name());
+        dto.setActive(slot.isActive());
+        dto.setDoctorScheduleId(slot.getDoctorSchedule().getId());
+
+        return dto;
+    }
+
+
 
 
 
