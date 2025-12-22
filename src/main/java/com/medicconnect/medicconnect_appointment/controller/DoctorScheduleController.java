@@ -9,6 +9,7 @@ import com.medicconnect.medicconnect_appointment.model.DoctorSchedule;
 import com.medicconnect.medicconnect_appointment.service.AppointmentSlotService;
 import com.medicconnect.medicconnect_appointment.service.DoctorBreakService;
 import com.medicconnect.medicconnect_appointment.service.DoctorScheduleService;
+import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Schedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -42,18 +43,29 @@ public class DoctorScheduleController {
         this.breakService = breakService;
     }
 
-    @PostMapping(path = "/{doctorId}/schedule", consumes = "application/json", produces = "application/json")
+
+    @PostMapping(
+            path = "/{doctorId}/schedule",
+            consumes = "application/json",
+            produces = "application/json"
+    )
     public ResponseEntity<List<DoctorSchedule>> createDoctorSchedule(
             @PathVariable Long doctorId,
-            @RequestBody String scheduleJson // receive as raw JSON string
+            @RequestBody String practitionerRoleJson
     ) {
-        // Parse JSON into FHIR Schedule POJO
-        IParser parser = fhirContext.newJsonParser();
-        Schedule fhirSchedule = parser.parseResource(Schedule.class, scheduleJson);
 
-        List<DoctorSchedule> schedules = scheduleService.createSchedule(doctorId, fhirSchedule);
+        IParser parser = fhirContext.newJsonParser();
+
+        PractitionerRole role =
+                parser.parseResource(PractitionerRole.class, practitionerRoleJson);
+
+        List<DoctorSchedule> schedules =
+                scheduleService.createSchedule(doctorId, role);
+
         return ResponseEntity.ok(schedules);
     }
+
+
 
     @PostMapping("/{doctorId}/schedule/{scheduleId}/breaks")
     public ResponseEntity<DoctorBreakResponseDTO> addBreak(
@@ -165,6 +177,8 @@ public class DoctorScheduleController {
         int deletedCount = scheduleService.deleteSchedulesInRange(doctorId, fromDate, toDate);
 
         return ResponseEntity.ok(deletedCount + " schedule(s) deleted successfully");
+
+
     }
 
 

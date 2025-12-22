@@ -11,7 +11,11 @@ import com.medicconnect.medicconnect_appointment.model.DoctorSchedule;
 import com.medicconnect.medicconnect_appointment.repo.AppointmentSlotRepository;
 import com.medicconnect.medicconnect_appointment.repo.DoctorBreakRepository;
 import com.medicconnect.medicconnect_appointment.repo.DoctorScheduleRepository;
+import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Schedule;
+import org.hl7.fhir.r4.model.codesystems.DaysOfWeek;
+import org.hl7.fhir.r4.model.Enumeration;
+
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -34,58 +38,76 @@ public class DoctorScheduleService {
 
     public List<DoctorSchedule> createSchedule(
             Long doctorId,
-            Schedule fhirSchedule
+            PractitionerRole role
     ) {
 
         List<DoctorSchedule> savedSchedules = new ArrayList<>();
 
-        // 1️⃣ Extract start & end date from FHIR Schedule
-        LocalDate startDate = fhirSchedule
-                .getPlanningHorizon()
-                .getStart()
-                .toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
+        // Read slot duration (custom FHIR extension)
+        Integer slotDuration =
+                role.getExtension().stream()
+                        .filter(ext ->
+                                ext.getUrl().equals(
+                                        "http://medicconnect.com/fhir/StructureDefinition/slot-duration"
+                                )
+                        )
+                        .findFirst()
+                        .map(ext -> ext.getValue().primitiveValue())
+                        .map(Integer::valueOf)
+                        .orElseThrow(() ->
+                                new RuntimeException("Slot duration missing")
+                        );
 
-        LocalDate endDate = fhirSchedule
-                .getPlanningHorizon()
-                .getEnd()
-                .toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
+        // Iterate availableTime blocks
+        for (PractitionerRole.PractitionerRoleAvailableTimeComponent at
+                : role.getAvailableTime()) {
 
-        // 2️⃣ Loop through EACH DATE in the range
-        LocalDate currentDate = startDate;
+            // Each availableTime can have multiple days
+            at.getDaysOfWeek().forEach(dayEnum -> {
 
-        while (!currentDate.isAfter(endDate)) {
+                DayOfWeek day =
+                        mapFhirDayToJava(dayEnum.getValue().name());
 
-            DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
+                DoctorSchedule entity = new DoctorSchedule();
+                entity.setDoctorId(doctorId);
+                entity.setDayOfWeek(day);
+                entity.setStartTime(
+                        LocalTime.parse(at.getAvailableStartTime())
+                );
+                entity.setEndTime(
+                        LocalTime.parse(at.getAvailableEndTime())
+                );
+                entity.setSlotDurationMinutes(slotDuration);
 
-            DoctorSchedule schedule = new DoctorSchedule();
-            schedule.setDoctorId(doctorId);
-            schedule.setDayOfWeek(dayOfWeek);
+                // Infinite schedule
+                entity.setEffectiveFrom(LocalDate.now());
+                entity.setEffectiveTo(null);
 
-            // ⏰ example: taken from FHIR extension or fixed for now
-            schedule.setStartTime(LocalTime.of(14, 30)); // 2:30 PM
-            schedule.setEndTime(LocalTime.of(18, 30));   // 6:30 PM
+                entity.setActive(true);
 
-            schedule.setSlotDurationMinutes(15);
-
-            // 🔑 IMPORTANT PART
-            schedule.setDate(currentDate);
-            schedule.setEffectiveFrom(startDate);
-            schedule.setEffectiveTo(endDate);
-
-            schedule.setActive(true);
-
-            savedSchedules.add(scheduleRepository.save(schedule));
-
-            currentDate = currentDate.plusDays(1);
+                savedSchedules.add(
+                        scheduleRepository.save(entity)
+                );
+            });
         }
 
         return savedSchedules;
     }
 
+
+
+    private DayOfWeek mapFhirDayToJava(String fhirDay) {
+        return switch (fhirDay.toLowerCase()) {
+            case "mon" -> DayOfWeek.MONDAY;
+            case "tue" -> DayOfWeek.TUESDAY;
+            case "wed" -> DayOfWeek.WEDNESDAY;
+            case "thu" -> DayOfWeek.THURSDAY;
+            case "fri" -> DayOfWeek.FRIDAY;
+            case "sat" -> DayOfWeek.SATURDAY;
+            case "sun" -> DayOfWeek.SUNDAY;
+            default -> throw new IllegalArgumentException("Invalid day: " + fhirDay);
+        };
+    }
 
     public DoctorScheduleViewDTO viewDoctorSchedule(Long doctorId) {
 
