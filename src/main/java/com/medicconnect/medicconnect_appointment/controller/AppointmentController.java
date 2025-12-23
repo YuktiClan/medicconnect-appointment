@@ -1,20 +1,19 @@
 package com.medicconnect.medicconnect_appointment.controller;
 
-import com.medicconnect.medicconnect_appointment.dto.AppointmentCreateRequestDTO;
-import com.medicconnect.medicconnect_appointment.dto.AppointmentResponseDTO;
-import com.medicconnect.medicconnect_appointment.dto.CreateAppointmentRequestDTO;
-import com.medicconnect.medicconnect_appointment.dto.RescheduleRequestDTO;
+import com.medicconnect.medicconnect_appointment.dto.*;
 import com.medicconnect.medicconnect_appointment.model.Appointment;
 import com.medicconnect.medicconnect_appointment.service.AppointmentService;
 import com.medicconnect.medicconnect_appointment.service.AppointmentSlotService;
 import com.medicconnect.medicconnect_appointment.validator.AppointmentValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -89,5 +88,19 @@ public class AppointmentController {
                     appointmentService.createAppointment(request);
             return ResponseEntity.ok(response);
         }
+
+    @GetMapping("/{doctorId}/fetch")
+    public ResponseEntity<List<AvailableSlotResponse>> fetchAppointment(
+            @PathVariable("doctorId") Long doctorId,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+
+        List<AvailableSlotResponse> response =
+                appointmentService.fetchAvailability(doctorId, date);
+
+        return ResponseEntity.ok(response);
+    }
 
 }

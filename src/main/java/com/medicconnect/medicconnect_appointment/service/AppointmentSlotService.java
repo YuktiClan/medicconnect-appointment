@@ -16,6 +16,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -221,6 +222,55 @@ public class AppointmentSlotService {
         return dto;
     }
 
+    public List<AvailableSlotResponse> fetchAvailability(
+            Long doctorId,
+            LocalDate date
+    ) {
+
+        DayOfWeek weekday = date.getDayOfWeek();
+
+        // STEP 1: Fetch weekly schedule
+        List<DoctorSchedule> schedules =
+                scheduleRepository.findByDoctorIdAndDayOfWeek(doctorId, weekday);
+
+        if (schedules.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // STEP 2: Fetch existing appointments for date
+        List<Appointment> appointments =
+                appointmentRepository.findByDoctorIdAndAppointmentDate(doctorId, date);
+
+        List<AvailableSlotResponse> availableSlots = new ArrayList<>();
+
+        // STEP 3: Build slots in memory
+        for (DoctorSchedule schedule : schedules) {
+
+            LocalTime slotStart = schedule.getStartTime();
+            LocalTime slotEnd =
+                    slotStart.plusMinutes(schedule.getSlotDurationMinutes());
+
+            boolean overlaps = false;
+
+            // STEP 4: Overlap validation
+            for (Appointment appt : appointments) {
+                if (slotStart.isBefore(appt.getEndTime())
+                        && slotEnd.isAfter(appt.getStartTime())) {
+                    overlaps = true;
+                    break;
+                }
+            }
+
+            // STEP 5: Add if free
+            if (!overlaps) {
+                availableSlots.add(
+                        new AvailableSlotResponse(slotStart, slotEnd)
+                );
+            }
+        }
+
+        return availableSlots;
+    }
 
 
 

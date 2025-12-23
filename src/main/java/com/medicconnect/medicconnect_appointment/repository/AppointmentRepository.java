@@ -5,6 +5,7 @@ import com.medicconnect.medicconnect_appointment.model.AppointmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
@@ -14,5 +15,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 //    boolean existsBySlotIdAndStatus(Long slotId, org.hl7.fhir.r4.model.Appointment.AppointmentStatus status);
 //
 //    boolean existsBySlotIdAndStatus(Long id, AppointmentStatus appointmentStatus);
+
+    List<Appointment> findByDoctorIdAndAppointmentDate(
+            Long doctorId,
+            LocalDate appointmentDate
+    );
 }
 
