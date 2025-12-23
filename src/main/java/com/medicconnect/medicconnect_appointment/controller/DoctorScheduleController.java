@@ -1,9 +1,6 @@
 package com.medicconnect.medicconnect_appointment.controller;
 
-import com.medicconnect.medicconnect_appointment.dto.AppointmentSlotDTO;
-import com.medicconnect.medicconnect_appointment.dto.BreakDTO;
-import com.medicconnect.medicconnect_appointment.dto.DoctorBreakResponseDTO;
-import com.medicconnect.medicconnect_appointment.dto.DoctorScheduleViewDTO;
+import com.medicconnect.medicconnect_appointment.dto.*;
 import com.medicconnect.medicconnect_appointment.model.AppointmentSlot;
 import com.medicconnect.medicconnect_appointment.model.DoctorSchedule;
 import com.medicconnect.medicconnect_appointment.service.AppointmentSlotService;
@@ -80,11 +77,9 @@ public class DoctorScheduleController {
 
 
     @PostMapping("/{doctorId}/schedules/{scheduleId}/slots")
-    public ResponseEntity<List<AppointmentSlot>> createSlots(
-            @PathVariable Long doctorId,
-            @PathVariable Long scheduleId
-    ) {
-        slotService.createSlots(doctorId, scheduleId);
+    public ResponseEntity<List<AppointmentSlot>> createSlots(CreateAppointmentRequestDTO requestDTO
+                                                             ) {
+        slotService.createAppointment(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -177,7 +172,6 @@ public class DoctorScheduleController {
         int deletedCount = scheduleService.deleteSchedulesInRange(doctorId, fromDate, toDate);
 
         return ResponseEntity.ok(deletedCount + " schedule(s) deleted successfully");
-
 
     }
 

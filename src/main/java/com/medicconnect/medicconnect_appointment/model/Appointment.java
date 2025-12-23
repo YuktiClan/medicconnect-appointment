@@ -1,64 +1,50 @@
 package com.medicconnect.medicconnect_appointment.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "appointment",
-       indexes = {
-           @Index(name = "idx_appointment_org_patient", columnList = "organization_id, patient_id"),
-           @Index(name = "idx_appointment_org_doctor", columnList = "organization_id, doctor_id"),
-           @Index(name = "idx_appointment_slot", columnList = "slot_id")
-       })
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "appointment")
 public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // global UUID
-    @Column(nullable = false, unique = true)
-    private String uuid;
-
-    @Column(name = "organization_id", nullable = false)
-    private Long organizationId;
+    @Column(name = "doctor_id", nullable = false)
+    private Long doctorId;
 
     @Column(name = "patient_id", nullable = false)
     private Long patientId;
 
-    @Column(name = "doctor_id", nullable = false)
-    private Long doctorId;
 
-    @Column(name = "slot_id", nullable = false)
-    private Long slotId;
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private AppointmentStatus status = AppointmentStatus.SCHEDULED;
+    private String status; // BOOKED / CANCELLED
 
-    @Column(name = "reason")
-    private String reason;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Column(name = "appointment_date", nullable = false)
+    private LocalDate appointmentDate;
 
-    @Column(name = "created_by")
-    private String createdBy;
+    @JsonFormat(pattern = "HH:mm")
+    @Column(name = "start_time", nullable = false)
+    private LocalTime startTime;
 
-    @Column(name = "created_at")
-    private Instant createdAt;
+    @JsonFormat(pattern = "HH:mm")
+    @Column(name = "end_time", nullable = false)
+    private LocalTime endTime;
 
-    @Column(name = "checked_in_at")
-    private Instant checkedInAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.uuid == null) this.uuid = UUID.randomUUID().toString();
-        if (this.createdAt == null) this.createdAt = Instant.now();
-    }
+    // getters & setters
 }
+

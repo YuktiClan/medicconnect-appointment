@@ -9,16 +9,16 @@ public class AppointmentMapper {
         if (a == null) return null;
         return AppointmentResponseDTO.builder()
                 .id(a.getId())
-                .uuid(a.getUuid())
-                .organizationId(a.getOrganizationId())
+//                .uuid(a.getUuid())
+//                .organizationId(a.getOrganizationId())
                 .patientId(a.getPatientId())
                 .doctorId(a.getDoctorId())
-                .slotId(a.getSlotId())
+//                .slotId(a.getSlotId())
                 .status(a.getStatus())
-                .reason(a.getReason())
-                .createdBy(a.getCreatedBy())
-                .createdAt(a.getCreatedAt())
-                .checkedInAt(a.getCheckedInAt())
+//                .reason(a.getReason())
+//                .createdBy(a.getCreatedBy())
+//                .createdAt(a.getCreatedAt())
+//                .checkedInAt(a.getCheckedInAt())
                 .build();
     }
 }

@@ -15,14 +15,6 @@ public interface AppointmentSlotRepository
 
     List<AppointmentSlot> findByDoctorScheduleIdAndActiveTrue(Long scheduleId);
 
-    List<AppointmentSlot> findByDoctorScheduleIdInAndStatusAndActiveTrue(
-            List<Long> scheduleIds,
-            SlotStatus status
-    );
-
-    List<AppointmentSlot> findByDoctorSchedule_DoctorIdAndDoctorSchedule_DateAndStatusAndActiveTrue(
-            Long doctorId, LocalDate date, SlotStatus status
-    );
 }
 
 

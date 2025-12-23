@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
-@Entity
 @Data
+@Entity
 @Table(name = "appointment_slot")
 public class AppointmentSlot {
 
@@ -15,19 +16,25 @@ public class AppointmentSlot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_schedule_id", nullable = false)
     private DoctorSchedule doctorSchedule;
 
-    @JsonFormat(pattern = "HH:mm")
+    @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
 
-    @JsonFormat(pattern = "HH:mm")
-    private LocalTime endTime;
+    @Column(name = "end_time", nullable = false)
+    private LocalTime endTime; // only one mapping to end_time
 
     @Enumerated(EnumType.STRING)
-    private SlotStatus status; // AVAILABLE, BOOKED, BLOCKED
+    @Column(name = "status", nullable = false)
+    private SlotStatus status = SlotStatus.AVAILABLE;
 
-    private boolean active;
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
+
+    @Column(name = "date", nullable = true)
+    private LocalDate date;
 }
+
 

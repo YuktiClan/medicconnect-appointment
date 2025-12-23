@@ -1,15 +1,11 @@
 package com.medicconnect.medicconnect_appointment.service;
 
-import com.medicconnect.medicconnect_appointment.dto.AppointmentSlotDTO;
-import com.medicconnect.medicconnect_appointment.dto.BreakDTO;
-import com.medicconnect.medicconnect_appointment.dto.DoctorBreakResponseDTO;
-import com.medicconnect.medicconnect_appointment.model.AppointmentSlot;
-import com.medicconnect.medicconnect_appointment.model.DoctorBreak;
-import com.medicconnect.medicconnect_appointment.model.DoctorSchedule;
-import com.medicconnect.medicconnect_appointment.model.SlotStatus;
+import com.medicconnect.medicconnect_appointment.dto.*;
+import com.medicconnect.medicconnect_appointment.model.*;
 import com.medicconnect.medicconnect_appointment.repo.AppointmentSlotRepository;
 import com.medicconnect.medicconnect_appointment.repo.DoctorBreakRepository;
 import com.medicconnect.medicconnect_appointment.repo.DoctorScheduleRepository;
+import com.medicconnect.medicconnect_appointment.repository.AppointmentRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +25,14 @@ public class AppointmentSlotService {
     @Autowired
     private DoctorScheduleRepository scheduleRepository;
 
+
     @Autowired
     private DoctorBreakRepository breakRepository;
 
     @Autowired
     private AppointmentSlotRepository slotRepository;
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     @Transactional
     public List<AppointmentSlot> createSlots(Long doctorId, Long scheduleId) {
@@ -84,6 +83,25 @@ public class AppointmentSlotService {
 
         List<AppointmentSlot> appointmentSlots = slotRepository.saveAll(slots);
         return appointmentSlots;
+    }
+
+    public AppointmentResponseDTO
+    createAppointment(CreateAppointmentRequestDTO request) {
+
+        Appointment appointment = new Appointment();
+        appointment.setDoctorId(request.getDoctorId());
+        appointment.setPatientId(request.getPatientId());
+        appointment.setAppointmentDate(request.getAppointmentDate());
+        appointment.setStartTime(request.getStartTime());
+        appointment.setEndTime(request.getEndTime());
+        appointment.setStatus("BOOKED");
+
+        Appointment save = appointmentRepository.save(appointment);
+
+        AppointmentResponseDTO res = new AppointmentResponseDTO();
+        res.setAppointmentId(save.getId());
+        res.setStartTime(save.getStartTime().toString());
+        return res;
     }
 
     public List<AppointmentSlot> getAvailableSlots(Long doctorId, LocalDate date) {
@@ -163,7 +181,7 @@ public class AppointmentSlotService {
         dto.setStartTime(slot.getStartTime().toString()); // LocalTime → String
         dto.setEndTime(slot.getEndTime().toString());
         dto.setStatus(slot.getStatus().name());
-        dto.setActive(slot.isActive());
+//        dto.setActive(slot.isActive());
         dto.setDoctorScheduleId(slot.getDoctorSchedule().getId());
 
         return dto;
@@ -197,7 +215,7 @@ public class AppointmentSlotService {
         dto.setStartTime(slot.getStartTime().toString());
         dto.setEndTime(slot.getEndTime().toString());
         dto.setStatus(slot.getStatus().name());
-        dto.setActive(slot.isActive());
+//        dto.setActive(slot.isActive());
         dto.setDoctorScheduleId(slot.getDoctorSchedule().getId());
 
         return dto;
