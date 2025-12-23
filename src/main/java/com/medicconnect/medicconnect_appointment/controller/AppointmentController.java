@@ -104,4 +104,14 @@ public class AppointmentController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping("/{appointmentId}/status")
+    public ResponseEntity<Void> updateAppointmentStatus(
+            @PathVariable Long appointmentId,
+            @RequestParam String status
+    ) {
+        appointmentService.updateAppointmentStatus(appointmentId, status);
+        return ResponseEntity.ok().build();
+    }
+
+
 }

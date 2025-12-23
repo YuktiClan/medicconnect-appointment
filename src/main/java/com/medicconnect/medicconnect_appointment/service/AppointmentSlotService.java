@@ -284,10 +284,19 @@ public class AppointmentSlotService {
 
         // Map to response DTO
         return appointments.stream()
-                .map(appt -> new AvailableSlotResponse(appt.getStartTime(), appt.getEndTime()))
+                .map(appt -> new AvailableSlotResponse(appt.getStartTime(), appt.getEndTime(), appt.getId(), appt.getStatus()))
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void updateAppointmentStatus(Long appointmentId, String status) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        appointment.setStatus(status.toUpperCase());
+        appointmentRepository.save(appointment);
+    }
 
 
 
