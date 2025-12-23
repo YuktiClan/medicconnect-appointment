@@ -7,6 +7,7 @@ import com.medicconnect.medicconnect_appointment.repo.DoctorBreakRepository;
 import com.medicconnect.medicconnect_appointment.repo.DoctorScheduleRepository;
 import com.medicconnect.medicconnect_appointment.repository.AppointmentRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class AppointmentSlotService {
 
@@ -221,56 +223,71 @@ public class AppointmentSlotService {
 
         return dto;
     }
+//
+//    public List<AvailableSlotResponse> fetchAvailableSlots(
+//            Long doctorId,
+//            LocalDate date,
+//            String status
+//    ) {
+//
+//        DayOfWeek weekday = date.getDayOfWeek();
+//
+//        // STEP 1: Fetch weekly schedule
+//        List<DoctorSchedule> schedules =
+//                scheduleRepository.findByDoctorIdAndDayOfWeek(doctorId, weekday);
+//
+//        if (schedules.isEmpty()) {
+//            return Collections.emptyList();
+//        }
+//
+//        // STEP 2: Fetch existing appointments for date
+//
+//
+//        log.info("status-is--------------- {}", status);
+//        List<Appointment> appointments =
+//                appointmentRepository.findAppointments(doctorId, date, status);
+//
+//        List<AvailableSlotResponse> availableSlots = new ArrayList<>();
+//
+//        // STEP 3: Build slots in memory
+//        for (DoctorSchedule schedule : schedules) {
+//
+//            LocalTime slotStart = schedule.getStartTime();
+//            LocalTime slotEnd =
+//                    slotStart.plusMinutes(schedule.getSlotDurationMinutes());
+//
+//            boolean overlaps = false;
+//
+//            // STEP 4: Overlap validation
+//            for (Appointment appt : appointments) {
+//                if (slotStart.isBefore(appt.getEndTime())
+//                        && slotEnd.isAfter(appt.getStartTime())) {
+//                    overlaps = true;
+//                    break;
+//                }
+//            }
+//
+//            // STEP 5: Add if free
+//            if (!overlaps) {
+//                availableSlots.add(
+//                        new AvailableSlotResponse(slotStart, slotEnd)
+//                );
+//            }
+//        }
+//
+//        return availableSlots;
+//    }
 
-    public List<AvailableSlotResponse> fetchAvailability(
-            Long doctorId,
-            LocalDate date
-    ) {
+    public List<AvailableSlotResponse> fetchBookedAppointments(Long doctorId, LocalDate date, String status) {
+        // Fetch all appointments for doctor on this date
+        List<Appointment> appointments = appointmentRepository.findAppointments(doctorId, date, status);
 
-        DayOfWeek weekday = date.getDayOfWeek();
-
-        // STEP 1: Fetch weekly schedule
-        List<DoctorSchedule> schedules =
-                scheduleRepository.findByDoctorIdAndDayOfWeek(doctorId, weekday);
-
-        if (schedules.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // STEP 2: Fetch existing appointments for date
-        List<Appointment> appointments =
-                appointmentRepository.findByDoctorIdAndAppointmentDate(doctorId, date);
-
-        List<AvailableSlotResponse> availableSlots = new ArrayList<>();
-
-        // STEP 3: Build slots in memory
-        for (DoctorSchedule schedule : schedules) {
-
-            LocalTime slotStart = schedule.getStartTime();
-            LocalTime slotEnd =
-                    slotStart.plusMinutes(schedule.getSlotDurationMinutes());
-
-            boolean overlaps = false;
-
-            // STEP 4: Overlap validation
-            for (Appointment appt : appointments) {
-                if (slotStart.isBefore(appt.getEndTime())
-                        && slotEnd.isAfter(appt.getStartTime())) {
-                    overlaps = true;
-                    break;
-                }
-            }
-
-            // STEP 5: Add if free
-            if (!overlaps) {
-                availableSlots.add(
-                        new AvailableSlotResponse(slotStart, slotEnd)
-                );
-            }
-        }
-
-        return availableSlots;
+        // Map to response DTO
+        return appointments.stream()
+                .map(appt -> new AvailableSlotResponse(appt.getStartTime(), appt.getEndTime()))
+                .collect(Collectors.toList());
     }
+
 
 
 

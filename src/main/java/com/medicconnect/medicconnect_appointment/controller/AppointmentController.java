@@ -90,15 +90,16 @@ public class AppointmentController {
         }
 
     @GetMapping("/{doctorId}/fetch")
-    public ResponseEntity<List<AvailableSlotResponse>> fetchAppointment(
+    public ResponseEntity<List<AvailableSlotResponse>> fetchAppointments(
             @PathVariable("doctorId") Long doctorId,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate date
+            LocalDate date,
+            @RequestParam(required = false) String status
     ) {
 
         List<AvailableSlotResponse> response =
-                appointmentService.fetchAvailability(doctorId, date);
+                appointmentService.fetchBookedAppointments(doctorId, date, status);
 
         return ResponseEntity.ok(response);
     }

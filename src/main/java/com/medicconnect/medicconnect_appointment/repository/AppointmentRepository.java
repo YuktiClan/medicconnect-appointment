@@ -3,6 +3,8 @@ package com.medicconnect.medicconnect_appointment.repository;
 import com.medicconnect.medicconnect_appointment.model.Appointment;
 import com.medicconnect.medicconnect_appointment.model.AppointmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -20,5 +22,26 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             Long doctorId,
             LocalDate appointmentDate
     );
+
+    @Query("""
+    SELECT a
+    FROM Appointment a
+    WHERE a.doctorId = :doctorId
+      AND a.appointmentDate = :appointmentDate
+      AND (:status IS NULL OR a.status = :status)
+""")
+    List<Appointment> findAppointments(
+            @Param("doctorId") Long doctorId,
+            @Param("appointmentDate") LocalDate appointmentDate,
+            @Param("status") String status
+    );
+
+
+    List<Appointment> findByDoctorIdAndAppointmentDateAndStatus(
+            Long doctorId,
+            LocalDate appointmentDate,
+            String status
+    );
+
 }
 
