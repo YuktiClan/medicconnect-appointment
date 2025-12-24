@@ -292,7 +292,7 @@ public class AppointmentSlotService {
 
         // Map to response DTO
         return appointments.stream()
-                .map(appt -> new AvailableSlotResponse( appt.getId(), appt.getStatus().name(), appt.getSlotNo()))
+                .map(appt -> new AvailableSlotResponse( appt.getId(), appt.getStatus().name(), appt.getSlotNo(), appt.getPatientId(), appt.getDoctorId()))
                 .collect(Collectors.toList());
     }
 
