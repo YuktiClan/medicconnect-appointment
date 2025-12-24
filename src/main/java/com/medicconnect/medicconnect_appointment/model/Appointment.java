@@ -31,7 +31,8 @@ public class Appointment {
 
 
     @Column(name = "status", nullable = false)
-    private String status; // BOOKED / CANCELLED
+    @Enumerated(EnumType.STRING)
+    private AppointmentStatus status; // BOOKED / CANCELLED
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Column(name = "appointment_date", nullable = false)

@@ -37,11 +37,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     );
 
 
-    List<Appointment> findByDoctorIdAndAppointmentDateAndStatus(
-            Long doctorId,
-            LocalDate appointmentDate,
-            String status
-    );
+//    List<Appointment> findByDoctorIdAndAppointmentDateAndStatus(
+//            Long doctorId,
+//            LocalDate appointmentDate,
+//            String status
+//    );
 
 }
 

@@ -3,6 +3,7 @@ package com.medicconnect.medicconnect_appointment.mapper;
 
 import com.medicconnect.medicconnect_appointment.dto.AppointmentResponseDTO;
 import com.medicconnect.medicconnect_appointment.model.Appointment;
+import com.medicconnect.medicconnect_appointment.model.AppointmentStatus;
 
 public class AppointmentMapper {
     public static AppointmentResponseDTO toDto(Appointment a) {
@@ -14,7 +15,7 @@ public class AppointmentMapper {
                 .patientId(a.getPatientId())
                 .doctorId(a.getDoctorId())
 //                .slotId(a.getSlotId())
-                .status(a.getStatus())
+                .status(a.getStatus().name())
 //                .reason(a.getReason())
 //                .createdBy(a.getCreatedBy())
 //                .createdAt(a.getCreatedAt())

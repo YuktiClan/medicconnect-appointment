@@ -9,6 +9,7 @@ import com.medicconnect.medicconnect_appointment.repository.AppointmentRepositor
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -97,7 +98,7 @@ public class AppointmentSlotService {
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setStartTime(request.getStartTime());
         appointment.setEndTime(request.getEndTime());
-        appointment.setStatus("BOOKED");
+        appointment.setStatus(AppointmentStatus.valueOf("BOOKED"));
 
         Appointment save = appointmentRepository.save(appointment);
 
@@ -284,7 +285,7 @@ public class AppointmentSlotService {
 
         // Map to response DTO
         return appointments.stream()
-                .map(appt -> new AvailableSlotResponse(appt.getStartTime(), appt.getEndTime(), appt.getId(), appt.getStatus()))
+                .map(appt -> new AvailableSlotResponse(appt.getStartTime(), appt.getEndTime(), appt.getId(), appt.getStatus().name()))
                 .collect(Collectors.toList());
     }
 
@@ -293,12 +294,20 @@ public class AppointmentSlotService {
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-
-        appointment.setStatus(status.toUpperCase());
+        AppointmentStatus appointmentStatus;
+        try {
+            appointmentStatus = AppointmentStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException(
+                    "Invalid appointment status: " + status
+            );
+        }
+        if (appointment.getStatus().name().equalsIgnoreCase(appointmentStatus.name())){
+            throw new RuntimeException("Appointment is already updated with status-" +  status);
+        }
+        appointment.setStatus(appointmentStatus);
         appointmentRepository.save(appointment);
     }
-
-
 
 
 
