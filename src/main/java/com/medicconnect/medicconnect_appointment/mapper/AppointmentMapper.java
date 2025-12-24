@@ -9,12 +9,12 @@ public class AppointmentMapper {
     public static AppointmentResponseDTO toDto(Appointment a) {
         if (a == null) return null;
         return AppointmentResponseDTO.builder()
-                .id(a.getId())
+                .appointmentId(a.getId())
 //                .uuid(a.getUuid())
 //                .organizationId(a.getOrganizationId())
                 .patientId(a.getPatientId())
                 .doctorId(a.getDoctorId())
-//                .slotId(a.getSlotId())
+                .slotId(a.getSlotNo())
                 .status(a.getStatus().name())
 //                .reason(a.getReason())
 //                .createdBy(a.getCreatedBy())

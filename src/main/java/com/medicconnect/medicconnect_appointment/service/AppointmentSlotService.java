@@ -92,19 +92,26 @@ public class AppointmentSlotService {
     public AppointmentResponseDTO
     createAppointment(CreateAppointmentRequestDTO request) {
 
+        List<Appointment> appointments = appointmentRepository.findByDoctorIdAndAppointmentDateAndStatusAndSlotNo(request.getDoctorId(),
+                request.getAppointmentDate(), AppointmentStatus.valueOf("BOOKED"), request.getSlotNo());
+        if (!appointments.isEmpty()){
+            throw new RuntimeException("Appointment is already created for slotNo "+ request.getSlotNo());
+        }
         Appointment appointment = new Appointment();
         appointment.setDoctorId(request.getDoctorId());
         appointment.setPatientId(request.getPatientId());
         appointment.setAppointmentDate(request.getAppointmentDate());
-        appointment.setStartTime(request.getStartTime());
-        appointment.setEndTime(request.getEndTime());
         appointment.setStatus(AppointmentStatus.valueOf("BOOKED"));
+        appointment.setSlotNo(request.getSlotNo());
 
         Appointment save = appointmentRepository.save(appointment);
 
         AppointmentResponseDTO res = new AppointmentResponseDTO();
         res.setAppointmentId(save.getId());
-        res.setStartTime(save.getStartTime().toString());
+        res.setSlotId(request.getSlotNo());
+        res.setDoctorId(request.getDoctorId());
+        res.setPatientId(request.getPatientId());
+        res.setStatus(save.getStatus().name());
         return res;
     }
 
@@ -285,7 +292,7 @@ public class AppointmentSlotService {
 
         // Map to response DTO
         return appointments.stream()
-                .map(appt -> new AvailableSlotResponse(appt.getStartTime(), appt.getEndTime(), appt.getId(), appt.getStatus().name()))
+                .map(appt -> new AvailableSlotResponse( appt.getId(), appt.getStatus().name(), appt.getSlotNo()))
                 .collect(Collectors.toList());
     }
 

@@ -11,6 +11,7 @@ import java.time.LocalTime;
 public class CreateAppointmentRequestDTO {
 
     private Long doctorId;
+    private Long slotNo;
     private Long patientId;
     private LocalDate appointmentDate;
     private LocalTime startTime;

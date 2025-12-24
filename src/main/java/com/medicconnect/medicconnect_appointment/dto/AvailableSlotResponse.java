@@ -12,13 +12,13 @@ public class AvailableSlotResponse {
     private String endTime;
     private String status;
     private Long appointmentId;
+    private Long slotNo;
 
-    public AvailableSlotResponse(LocalTime startTime, LocalTime endTime, Long appointmentId
-            , String status) {
-        this.startTime = startTime.toString(); // "HH:mm"
-        this.endTime = endTime.toString();
+    public AvailableSlotResponse(Long appointmentId
+            , String status, Long slotNo) {
         this.appointmentId = appointmentId;
         this.status = status;
+        this.slotNo = slotNo;
     }
 }
 
