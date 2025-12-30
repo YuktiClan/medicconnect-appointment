@@ -95,7 +95,7 @@ public class AppointmentController {
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date,
-            @RequestParam(required = false) String status
+            @RequestParam(name = "status", required = false) String status
     ) {
 
         List<AvailableSlotResponse> response =

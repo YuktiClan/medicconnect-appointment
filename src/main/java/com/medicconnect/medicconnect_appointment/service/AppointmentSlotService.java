@@ -17,9 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -89,20 +87,89 @@ public class AppointmentSlotService {
         return appointmentSlots;
     }
 
-    public AppointmentResponseDTO
-    createAppointment(CreateAppointmentRequestDTO request) {
+    public AppointmentResponseDTO createAppointment(CreateAppointmentRequestDTO request) {
 
-        List<Appointment> appointments = appointmentRepository.findByDoctorIdAndAppointmentDateAndStatusAndSlotNo(request.getDoctorId(),
-                request.getAppointmentDate(), AppointmentStatus.valueOf("BOOKED"), request.getSlotNo());
-        if (!appointments.isEmpty()){
-            throw new RuntimeException("Appointment is already created for slotNo "+ request.getSlotNo());
-        }
         Appointment appointment = new Appointment();
         appointment.setDoctorId(request.getDoctorId());
         appointment.setPatientId(request.getPatientId());
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setStatus(AppointmentStatus.valueOf("BOOKED"));
-        appointment.setSlotNo(request.getSlotNo());
+
+
+        boolean openDayFlag = Boolean.TRUE.equals(request.getOpenDayFlag());
+        /*
+         *  system generated slot no as per its doctors schedule
+         * */
+
+        if (!openDayFlag) {
+            // UI is sending slot number directly → validate & save as is
+            if (request.getSlotNo() == null) {
+                throw new RuntimeException("slotNo is required when openDayFlag = false");
+            }
+
+            List<Appointment> appointments = appointmentRepository
+                    .findByDoctorIdAndAppointmentDateAndStatusAndSlotNo(
+                            request.getDoctorId(),
+                            request.getAppointmentDate(),
+                            AppointmentStatus.valueOf("BOOKED"),
+                            request.getSlotNo()
+                    );
+
+            if (!appointments.isEmpty()) {
+                throw new RuntimeException("Appointment already exists for slotNo " + request.getSlotNo());
+            }
+
+            appointment.setSlotNo(request.getSlotNo());
+        }
+        else {
+            List<DoctorSchedule> schedules = scheduleRepository
+                    .findByDoctorIdAndDayOfWeek(request.getDoctorId(), request.getAppointmentDate().getDayOfWeek());
+
+            if (schedules.isEmpty()) {
+                throw new RuntimeException("Doctor has no schedule for this weekday");
+            }
+
+            int slotDuration = schedules.get(0).getSlotDurationMinutes();
+            Integer generatedSlotNo = null;
+            LocalTime selectedStart = null;
+            LocalTime now = LocalTime.now();
+
+            schedules.sort(Comparator.comparing(DoctorSchedule::getStartTime));
+            int globalSlotCounter = 0;
+
+            for (DoctorSchedule sch : schedules) {
+                LocalTime pointer = sch.getStartTime();
+                LocalTime end = sch.getEndTime();
+
+                while (!pointer.isAfter(end.minusMinutes(slotDuration))) {
+                    globalSlotCounter++;
+
+                    boolean booked = appointmentRepository
+                            .existsByDoctorIdAndAppointmentDateAndSlotNo(
+                                    request.getDoctorId(),
+                                    request.getAppointmentDate(),
+                                    globalSlotCounter
+                            );
+
+                    if (pointer.isAfter(now) && !booked) {
+                        selectedStart = pointer;
+                        generatedSlotNo = globalSlotCounter;
+                        break;
+                    }
+
+                    pointer = pointer.plusMinutes(slotDuration);
+                }
+
+                if (selectedStart != null) break;
+            }
+
+            if (generatedSlotNo == null) {
+                throw new RuntimeException(" No available future slots remaining for today");
+            }
+
+            appointment.setSlotNo((long) generatedSlotNo);
+        }
+
 
         Appointment save = appointmentRepository.save(appointment);
 
@@ -112,6 +179,7 @@ public class AppointmentSlotService {
         res.setDoctorId(request.getDoctorId());
         res.setPatientId(request.getPatientId());
         res.setStatus(save.getStatus().name());
+        res.setSlotId(save.getSlotNo());
         return res;
     }
 
@@ -288,11 +356,14 @@ public class AppointmentSlotService {
 
     public List<AvailableSlotResponse> fetchBookedAppointments(Long doctorId, LocalDate date, String status) {
         // Fetch all appointments for doctor on this date
-        List<Appointment> appointments = appointmentRepository.findAppointments(doctorId, date, status);
+        AppointmentStatus appointmentStatus = Objects.nonNull(status) && !status.isEmpty() ? AppointmentStatus.valueOf(status) : null;
+        List<Appointment> appointments = appointmentRepository.findAppointments(doctorId, date, appointmentStatus);
+        log.info("fetching records for doctorId - {} , date- {}, appointmentstatus - {} and records size is - {}", doctorId, date, appointmentStatus, appointments.size() );
 
         // Map to response DTO
         return appointments.stream()
-                .map(appt -> new AvailableSlotResponse( appt.getId(), appt.getStatus().name(), appt.getSlotNo(), appt.getPatientId(), appt.getDoctorId()))
+                .map(appt -> new AvailableSlotResponse( appt.getId(), appt.getStatus().name(), appt.getSlotNo(), appt.getPatientId(), appt.getDoctorId()
+                ))
                 .collect(Collectors.toList());
     }
 
@@ -315,7 +386,6 @@ public class AppointmentSlotService {
         appointment.setStatus(appointmentStatus);
         appointmentRepository.save(appointment);
     }
-
 
 
 }

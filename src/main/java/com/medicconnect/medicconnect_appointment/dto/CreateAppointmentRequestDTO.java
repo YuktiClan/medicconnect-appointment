@@ -13,6 +13,7 @@ public class CreateAppointmentRequestDTO {
     private Long doctorId;
     private Long slotNo;
     private Long patientId;
+    private Boolean openDayFlag;
     private LocalDate appointmentDate;
     private LocalTime startTime;
     private LocalTime endTime;

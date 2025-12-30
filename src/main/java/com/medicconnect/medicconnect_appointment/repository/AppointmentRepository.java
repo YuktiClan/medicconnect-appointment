@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
@@ -33,7 +34,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findAppointments(
             @Param("doctorId") Long doctorId,
             @Param("appointmentDate") LocalDate appointmentDate,
-            @Param("status") String status
+            @Param("status") AppointmentStatus status
     );
 
 
@@ -42,6 +43,12 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             LocalDate appointmentDate,
             AppointmentStatus status,
             Long slotNo
+    );
+
+    boolean existsByDoctorIdAndAppointmentDateAndSlotNo(
+            Long doctorId,
+            LocalDate appointmentDate,
+            Integer slotNo
     );
 
 }
