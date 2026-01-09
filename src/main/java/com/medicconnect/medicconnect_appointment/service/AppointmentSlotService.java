@@ -33,8 +33,13 @@ public class AppointmentSlotService {
 
     @Autowired
     private AppointmentSlotRepository slotRepository;
+
     @Autowired
     private AppointmentRepository appointmentRepository;
+
+    @Autowired
+    private AppointmentRedisLockService redisLockService;
+
 
     @Transactional
     public List<AppointmentSlot> createSlots(Long doctorId, Long scheduleId) {
@@ -93,25 +98,26 @@ public class AppointmentSlotService {
         appointment.setDoctorId(request.getDoctorId());
         appointment.setPatientId(request.getPatientId());
         appointment.setAppointmentDate(request.getAppointmentDate());
-        appointment.setStatus(AppointmentStatus.valueOf("BOOKED"));
+        appointment.setStatus(AppointmentStatus.valueOf("PENDING"));
 
 
         boolean openDayFlag = Boolean.TRUE.equals(request.getOpenDayFlag());
         /*
          *  system generated slot no as per its doctors schedule
          * */
+        Long slotNo;
 
         if (!openDayFlag) {
             // UI is sending slot number directly → validate & save as is
             if (request.getSlotNo() == null) {
                 throw new RuntimeException("slotNo is required when openDayFlag = false");
             }
-
+            slotNo = request.getSlotNo();
             List<Appointment> appointments = appointmentRepository
                     .findByDoctorIdAndAppointmentDateAndStatusAndSlotNo(
                             request.getDoctorId(),
                             request.getAppointmentDate(),
-                            AppointmentStatus.valueOf("BOOKED"),
+                            AppointmentStatus.valueOf("PENDING"),
                             request.getSlotNo()
                     );
 
@@ -169,9 +175,21 @@ public class AppointmentSlotService {
 
             appointment.setSlotNo((long) generatedSlotNo);
         }
+        String redisKey = redisLockService.buildKey(
+                request.getDoctorId(),
+                request.getAppointmentDate(),
+                appointment.getSlotNo()
+        );
 
+        boolean lockAcquired = redisLockService.tryLock(redisKey);
 
+        if (!lockAcquired) {
+            throw new RuntimeException("Appointment request already in progress for this slot");
+        }
+
+        try {
         Appointment save = appointmentRepository.save(appointment);
+        redisLockService.markBooked(redisKey);
 
         AppointmentResponseDTO res = new AppointmentResponseDTO();
         res.setAppointmentId(save.getId());
@@ -181,6 +199,10 @@ public class AppointmentSlotService {
         res.setStatus(save.getStatus().name());
         res.setSlotId(save.getSlotNo());
         return res;
+        } catch (Exception ex) {
+            redisLockService.release(redisKey);
+            throw ex;
+        }
     }
 
     public List<AppointmentSlot> getAvailableSlots(Long doctorId, LocalDate date) {
