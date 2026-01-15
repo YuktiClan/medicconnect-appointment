@@ -55,7 +55,7 @@ public class AppointmentController {
 //     */
 //    @PostMapping("/reschedule")
 //    @PreAuthorize("hasPermission(null, 'appointment.reschedule')")
-//    public ResponseEntity<AppointmentResponseDTO> reschedule(@RequestBody RescheduleRequestDTO req,
+//    public ResponseEntity<AppointmentFResponseDTO> reschedule(@RequestBody RescheduleRequestDTO req,
 //                                                             @RequestHeader(value = "X-User", required = false) String requestedBy) {
 //        AppointmentResponseDTO dto = service.reschedule(req, requestedBy);
 //        return ResponseEntity.ok(dto);

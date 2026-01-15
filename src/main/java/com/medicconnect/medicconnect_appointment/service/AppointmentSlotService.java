@@ -105,14 +105,14 @@ public class AppointmentSlotService {
         /*
          *  system generated slot no as per its doctors schedule
          * */
-        Long slotNo;
+//        Long slotNo;
 
         if (!openDayFlag) {
             // UI is sending slot number directly → validate & save as is
             if (request.getSlotNo() == null) {
                 throw new RuntimeException("slotNo is required when openDayFlag = false");
             }
-            slotNo = request.getSlotNo();
+//            slotNo = request.getSlotNo();
             List<Appointment> appointments = appointmentRepository
                     .findByDoctorIdAndAppointmentDateAndStatusAndSlotNo(
                             request.getDoctorId(),
