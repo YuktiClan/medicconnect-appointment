@@ -40,6 +40,8 @@ public class AppointmentSlotService {
     @Autowired
     private AppointmentRedisLockService redisLockService;
 
+    @Autowired
+    private DoctorGoogleAvailabilityService doctorGoogleAvailabilityService;
 
     @Transactional
     public List<AppointmentSlot> createSlots(Long doctorId, Long scheduleId) {
@@ -92,7 +94,7 @@ public class AppointmentSlotService {
         return appointmentSlots;
     }
 
-    public AppointmentResponseDTO createAppointment(CreateAppointmentRequestDTO request) {
+    public AppointmentResponseDTO createAppointment(CreateAppointmentRequestDTO request) throws Exception {
 
         Appointment appointment = new Appointment();
         appointment.setDoctorId(request.getDoctorId());
@@ -100,7 +102,8 @@ public class AppointmentSlotService {
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setStatus(AppointmentStatus.valueOf("PENDING"));
 
-
+        int slotDuration = 15;
+        LocalTime selectedStart = null;
         boolean openDayFlag = Boolean.TRUE.equals(request.getOpenDayFlag());
         /*
          *  system generated slot no as per its doctors schedule
@@ -135,9 +138,8 @@ public class AppointmentSlotService {
                 throw new RuntimeException("Doctor has no schedule for this weekday");
             }
 
-            int slotDuration = schedules.get(0).getSlotDurationMinutes();
+           slotDuration = schedules.get(0).getSlotDurationMinutes();
             Integer generatedSlotNo = null;
-            LocalTime selectedStart = null;
             LocalTime now = LocalTime.now();
 
             schedules.sort(Comparator.comparing(DoctorSchedule::getStartTime));
@@ -186,6 +188,24 @@ public class AppointmentSlotService {
         if (!lockAcquired) {
             throw new RuntimeException("Appointment request already in progress for this slot");
         }
+
+        // ===== GOOGLE CALENDAR AVAILABILITY CHECK =====
+        doctorGoogleAvailabilityService
+                .validateDoctorAvailabilityOnGoogle(
+                        request.getDoctorId(),
+                        request.getAppointmentDate(),
+                        LocalTime.parse(request.getSlotStartTime()),
+                        slotDuration
+                );
+
+        doctorGoogleAvailabilityService
+                .createDoctorEventOnGoogle(
+                        request.getDoctorId(),
+                        request.getAppointmentDate(),
+                        LocalTime.parse(request.getSlotStartTime()),
+                        slotDuration
+        );
+        // ============================================
 
         try {
         Appointment save = appointmentRepository.save(appointment);

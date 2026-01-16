@@ -83,7 +83,7 @@ public class AppointmentController {
         @PostMapping("/{doctorId}/appointments")
         public ResponseEntity<AppointmentResponseDTO> createAppointment(
                 @RequestBody CreateAppointmentRequestDTO request
-        ) {
+        ) throws Exception {
             AppointmentResponseDTO response =
                     appointmentService.createAppointment(request);
             return ResponseEntity.ok(response);

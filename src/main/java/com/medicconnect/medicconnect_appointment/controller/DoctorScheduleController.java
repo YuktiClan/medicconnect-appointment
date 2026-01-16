@@ -78,7 +78,7 @@ public class DoctorScheduleController {
 
     @PostMapping("/{doctorId}/schedules/{scheduleId}/slots")
     public ResponseEntity<List<AppointmentSlot>> createSlots(CreateAppointmentRequestDTO requestDTO
-                                                             ) {
+                                                             ) throws Exception {
         slotService.createAppointment(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
