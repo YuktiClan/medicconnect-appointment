@@ -208,8 +208,8 @@ public class AppointmentSlotService {
         // ============================================
 
         try {
-        Appointment save = appointmentRepository.save(appointment);
         redisLockService.markBooked(redisKey);
+        Appointment save = appointmentRepository.save(appointment);
 
         AppointmentResponseDTO res = new AppointmentResponseDTO();
         res.setAppointmentId(save.getId());
