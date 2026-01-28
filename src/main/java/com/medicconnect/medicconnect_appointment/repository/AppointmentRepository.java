@@ -37,6 +37,17 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("status") AppointmentStatus status
     );
 
+    @Query("""
+    SELECT a
+    FROM Appointment a
+    WHERE a.doctorId = :doctorId
+      AND (:status IS NULL OR a.status = :status)
+""")
+    List<Appointment> findAllAppointmentsByDoctorId(
+            @Param("doctorId") Long doctorId,
+            @Param("status") AppointmentStatus status
+    );
+
 
     List<Appointment> findByDoctorIdAndAppointmentDateAndStatusAndSlotNo(
             Long doctorId,

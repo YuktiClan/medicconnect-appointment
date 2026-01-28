@@ -92,7 +92,7 @@ public class AppointmentController {
     @GetMapping("/{doctorId}/fetch")
     public ResponseEntity<List<AvailableSlotResponse>> fetchAppointments(
             @PathVariable("doctorId") Long doctorId,
-            @RequestParam
+            @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date,
             @RequestParam(name = "status", required = false) String status

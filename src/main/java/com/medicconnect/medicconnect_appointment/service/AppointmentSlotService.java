@@ -177,17 +177,17 @@ public class AppointmentSlotService {
 
             appointment.setSlotNo((long) generatedSlotNo);
         }
-        String redisKey = redisLockService.buildKey(
-                request.getDoctorId(),
-                request.getAppointmentDate(),
-                appointment.getSlotNo()
-        );
-
-        boolean lockAcquired = redisLockService.tryLock(redisKey);
-
-        if (!lockAcquired) {
-            throw new RuntimeException("Appointment request already in progress for this slot");
-        }
+//        String redisKey = redisLockService.buildKey(
+//                request.getDoctorId(),
+//                request.getAppointmentDate(),
+//                appointment.getSlotNo()
+//        );
+//
+//        boolean lockAcquired = redisLockService.tryLock(redisKey);
+//
+//        if (!lockAcquired) {
+//            throw new RuntimeException("Appointment request already in progress for this slot");
+//        }
 
         // ===== GOOGLE CALENDAR AVAILABILITY CHECK =====
         doctorGoogleAvailabilityService
@@ -208,7 +208,7 @@ public class AppointmentSlotService {
         // ============================================
 
         try {
-        redisLockService.markBooked(redisKey);
+//        redisLockService.markBooked(redisKey);
         Appointment save = appointmentRepository.save(appointment);
 
         AppointmentResponseDTO res = new AppointmentResponseDTO();
@@ -220,7 +220,7 @@ public class AppointmentSlotService {
         res.setSlotId(save.getSlotNo());
         return res;
         } catch (Exception ex) {
-            redisLockService.release(redisKey);
+//            redisLockService.release(redisKey);
             throw ex;
         }
     }
@@ -399,7 +399,12 @@ public class AppointmentSlotService {
     public List<AvailableSlotResponse> fetchBookedAppointments(Long doctorId, LocalDate date, String status) {
         // Fetch all appointments for doctor on this date
         AppointmentStatus appointmentStatus = Objects.nonNull(status) && !status.isEmpty() ? AppointmentStatus.valueOf(status) : null;
-        List<Appointment> appointments = appointmentRepository.findAppointments(doctorId, date, appointmentStatus);
+        List<Appointment> appointments;
+        if (Objects.isNull(date)){
+            appointments = appointmentRepository.findAllAppointmentsByDoctorId(doctorId, appointmentStatus);
+        }else {
+            appointments = appointmentRepository.findAppointments(doctorId, date, appointmentStatus);
+        }
         log.info("fetching records for doctorId - {} , date- {}, appointmentstatus - {} and records size is - {}", doctorId, date, appointmentStatus, appointments.size() );
 
         // Map to response DTO

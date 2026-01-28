@@ -6,6 +6,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.medicconnect.medicconnect_appointment.model.DoctorGoogleToken;
 import com.medicconnect.medicconnect_appointment.repo.DoctorGoogleTokenRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class GoogleAuthService {
 
@@ -37,6 +39,8 @@ public class GoogleAuthService {
     }
 
     public String buildAuthorizationUrl(Long doctorId) {
+        log.info("RAW redirectUri = {}", redirectUri);
+        log.info("ENCODED redirectUri = {}", encode(redirectUri));
 
         return "https://accounts.google.com/o/oauth2/v2/auth"
                 + "?client_id=" + clientId

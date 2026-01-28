@@ -1,6 +1,7 @@
 package com.medicconnect.medicconnect_appointment.controller;
 
 import com.medicconnect.medicconnect_appointment.service.GoogleAuthService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.net.URI;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/google")
 public class GoogleAuthController {
@@ -28,6 +30,7 @@ public class GoogleAuthController {
         String authorizationUrl =
                 googleAuthService.buildAuthorizationUrl(doctorId);
 
+//        log.info();
         return ResponseEntity
                 .status(HttpStatus.FOUND)
                 .location(URI.create(authorizationUrl))
