@@ -35,3 +35,7 @@ hapi:
     fhir_version: R4
     allow_external_references: true
     allow_multiple_delete: true
+google:
+  client-id: 893832632080-jb16kdcif93cfh3mbfsv5e7bhq93n78b1.apps.googleusercontent.com
+  client-secret: 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1
+  redirect-uri: http://localhost:8081/api/google/callback
