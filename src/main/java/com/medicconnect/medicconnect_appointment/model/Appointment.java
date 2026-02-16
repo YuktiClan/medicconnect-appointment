@@ -41,6 +41,15 @@ public class Appointment {
     @Column(name = "slot_no", nullable = false)
     private Long slotNo;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Column(name = "consultation_start_at")
+    private LocalDate consultationStartedAt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Column(name = "consultation_completed_at")
+    private LocalDate consultationCompletedAt;
+
+
 //    @JsonFormat(pattern = "HH:mm")
 //    @Column(name = "start_time", nullable = false)
 //    private LocalTime startTime;
@@ -48,6 +57,31 @@ public class Appointment {
 //    @JsonFormat(pattern = "HH:mm")
 //    @Column(name = "end_time", nullable = false)
 //    private LocalTime endTime;
+
+    /* ================= ADMIN SECTION ================= */
+    private String bloodPressure;
+    private Integer pulse;
+    private Double temperature;
+    private String initialComplaints;
+
+    /* ================= DOCTOR SECTION ================= */
+    @Column(columnDefinition = "TEXT")
+    private String symptoms;
+
+    @Column(columnDefinition = "TEXT")
+    private String diagnosis;
+
+    @Column(columnDefinition = "TEXT")
+    private String prescription;
+
+    @Column(columnDefinition = "TEXT")
+    private String tests;
+
+    @Column(columnDefinition = "TEXT")
+    private String patientComments;
+
+    @Column(columnDefinition = "TEXT")
+    private String doctorNotes;
 
 }
 

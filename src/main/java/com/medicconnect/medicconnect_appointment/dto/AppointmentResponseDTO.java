@@ -1,10 +1,12 @@
 package com.medicconnect.medicconnect_appointment.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.medicconnect.medicconnect_appointment.model.AppointmentStatus;
 import lombok.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -22,11 +24,26 @@ public class AppointmentResponseDTO {
     private Long patientId;
     private Long slotId;
     private String status;
-//    private String reason;
-//    private String createdBy;
-//    private Instant createdAt;
-//    private Instant checkedInAt;
-//    private String startTime;
-//    private String endTime;
+    private String appointmentDate;
+
+    private Long slotNo;
+
+    private String consultationStartedAt;
+
+    private String consultationCompletedAt;
+
+    /* ================= ADMIN SECTION ================= */
+    private String bloodPressure;
+    private Integer pulse;
+    private Double temperature;
+    private String initialComplaints;
+
+    /* ================= DOCTOR SECTION ================= */
+    private String symptoms;
+    private String diagnosis;
+    private String prescription;
+    private String tests;
+    private String patientComments;
+    private String doctorNotes;
 }
 

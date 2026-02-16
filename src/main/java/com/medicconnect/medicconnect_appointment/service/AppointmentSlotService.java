@@ -1,6 +1,7 @@
 package com.medicconnect.medicconnect_appointment.service;
 
 import com.medicconnect.medicconnect_appointment.dto.*;
+import com.medicconnect.medicconnect_appointment.mapper.AppointmentMapper;
 import com.medicconnect.medicconnect_appointment.model.*;
 import com.medicconnect.medicconnect_appointment.repo.AppointmentSlotRepository;
 import com.medicconnect.medicconnect_appointment.repo.DoctorBreakRepository;
@@ -9,10 +10,7 @@ import com.medicconnect.medicconnect_appointment.repository.AppointmentRepositor
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -434,6 +432,122 @@ public class AppointmentSlotService {
         appointmentRepository.save(appointment);
     }
 
+    @Transactional
+    public Appointment startConsultation(Long appointmentId, Long doctorId) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        //Validate doctor ownership
+        if (!appointment.getDoctorId().equals(doctorId)) {
+            throw new RuntimeException("Doctor not authorized for this appointment");
+        }
+
+        //Validate appointment status
+        if (appointment.getStatus() == AppointmentStatus.CHECKED_IN) {
+            throw new RuntimeException("Consultation already started");
+        }
+
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new RuntimeException("Consultation already completed");
+        }
+//
+//        if (appointment.getStatus() != AppointmentStatus.BOOKED) {
+//            throw new RuntimeException("Invalid appointment state");
+//        }
+
+        // Start consultation
+        appointment.setStatus(AppointmentStatus.CHECKED_IN);
+        appointment.setConsultationStartedAt(LocalDate.now());
+
+        return appointmentRepository.save(appointment);
+    }
+
+    /* ================= GET ================= */
+
+    public AppointmentResponseDTO getConsultation(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        return AppointmentMapper.toDto(appointment);
+    }
+
+    /* ================= ADMIN ================= */
+
+    public Appointment updateAdminDetails(Long appointmentId, AdminUpdateRequest request) {
+
+        Appointment appt = getAppointmentForEdit(appointmentId);
+
+        appt.setBloodPressure(request.getBloodPressure());
+        appt.setPulse(request.getPulse());
+        appt.setTemperature(request.getTemperature());
+        appt.setInitialComplaints(request.getInitialComplaints());
+
+        return appointmentRepository.save(appt);
+    }
+
+    /* ================= DOCTOR ================= */
+
+    public Appointment updateSymptoms(Long appointmentId, String symptomsJson) {
+        Appointment appt = getAppointmentForEdit(appointmentId);
+        appt.setSymptoms(symptomsJson);
+        return appointmentRepository.save(appt);
+    }
+
+    public Appointment updateDiagnosis(Long appointmentId, String diagnosisJson) {
+        Appointment appt = getAppointmentForEdit(appointmentId);
+        appt.setDiagnosis(diagnosisJson);
+        return appointmentRepository.save(appt);
+    }
+
+    public Appointment updatePrescription(Long appointmentId, String prescriptionJson) {
+        Appointment appt = getAppointmentForEdit(appointmentId);
+        appt.setPrescription(prescriptionJson);
+        return appointmentRepository.save(appt);
+    }
+
+    public Appointment updateTests(Long appointmentId, String testsJson) {
+        Appointment appt = getAppointmentForEdit(appointmentId);
+        appt.setTests(testsJson);
+        return appointmentRepository.save(appt);
+    }
+
+    public Appointment updateNotes(Long appointmentId, NotesRequest request) {
+        Appointment appt = getAppointmentForEdit(appointmentId);
+        appt.setPatientComments(request.getPatientComments());
+        appt.setDoctorNotes(request.getDoctorNotes());
+        return appointmentRepository.save(appt);
+    }
+
+    /* ================= FINALIZE ================= */
+
+    public Appointment finalizeConsultation(Long appointmentId, Long doctorId) {
+
+        Appointment appt = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if (!appt.getDoctorId().equals(doctorId)) {
+            throw new RuntimeException("Doctor not authorized");
+        }
+
+        if (appt.getStatus() != AppointmentStatus.CHECKED_IN) {
+            throw new RuntimeException("Consultation not active");
+        }
+
+        appt.setStatus(AppointmentStatus.COMPLETED);
+        return appointmentRepository.save(appt);
+    }
+
+    /* ================= COMMON ================= */
+
+    private Appointment getAppointmentForEdit(Long appointmentId) {
+        Appointment appt = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if (appt.getStatus() != AppointmentStatus.CHECKED_IN) {
+            throw new RuntimeException("Consultation not editable");
+        }
+        return appt;
+    }
 
 }
 

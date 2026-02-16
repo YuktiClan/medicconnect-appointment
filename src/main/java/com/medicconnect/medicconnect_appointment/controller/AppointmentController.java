@@ -1,6 +1,7 @@
 package com.medicconnect.medicconnect_appointment.controller;
 
 import com.medicconnect.medicconnect_appointment.dto.*;
+import com.medicconnect.medicconnect_appointment.mapper.AppointmentMapper;
 import com.medicconnect.medicconnect_appointment.model.Appointment;
 import com.medicconnect.medicconnect_appointment.service.AppointmentService;
 import com.medicconnect.medicconnect_appointment.service.AppointmentSlotService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -111,6 +113,107 @@ public class AppointmentController {
     ) {
         appointmentService.updateAppointmentStatus(appointmentId, status);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{appointmentId}/start")
+    public ResponseEntity<?> startConsultation(
+            @PathVariable Long appointmentId,
+            @RequestParam("doctorId") Long doctorId
+    ) {
+        Appointment appointment = appointmentService.startConsultation(
+                appointmentId,
+                doctorId
+        );
+
+        return ResponseEntity.ok(appointment);
+    }
+
+
+    /* ================= GET FULL CONSULTATION ================= */
+
+    @GetMapping("/{appointmentId}/consultation")
+    public ResponseEntity<AppointmentResponseDTO> getConsultation(
+            @PathVariable Long appointmentId
+    ) {
+
+        AppointmentResponseDTO dto = appointmentService.getConsultation(appointmentId);
+        return ResponseEntity.ok(dto);
+    }
+
+    /* ================= ADMIN ================= */
+
+    @PatchMapping("/{appointmentId}/admin")
+    public ResponseEntity<AppointmentResponseDTO> updateAdminDetails(
+            @PathVariable Long appointmentId,
+            @RequestBody AdminUpdateRequest request
+    ) {
+        return ResponseEntity.ok(
+                AppointmentMapper.toDto(appointmentService.updateAdminDetails(appointmentId, request))
+        );
+    }
+
+    /* ================= DOCTOR ================= */
+
+    @PatchMapping("/{appointmentId}/symptoms")
+    public ResponseEntity<AppointmentResponseDTO> updateSymptoms(
+            @PathVariable Long appointmentId,
+            @RequestBody String symptomsJson
+    ) {
+        return ResponseEntity.ok(
+                AppointmentMapper.toDto(appointmentService.updateSymptoms(appointmentId, symptomsJson))
+        );
+    }
+
+    @PatchMapping("/{appointmentId}/diagnosis")
+    public ResponseEntity<AppointmentResponseDTO> updateDiagnosis(
+            @PathVariable Long appointmentId,
+            @RequestBody String diagnosisJson
+    ) {
+        return ResponseEntity.ok(
+                AppointmentMapper.toDto(appointmentService.updateDiagnosis(appointmentId, diagnosisJson))
+        );
+    }
+
+    @PatchMapping("/{appointmentId}/prescription")
+    public ResponseEntity<Appointment> updatePrescription(
+            @PathVariable Long appointmentId,
+            @RequestBody String prescriptionJson
+    ) {
+        return ResponseEntity.ok(
+                appointmentService.updatePrescription(appointmentId, prescriptionJson)
+        );
+    }
+
+    @PatchMapping("/{appointmentId}/tests")
+    public ResponseEntity<Appointment> updateTests(
+            @PathVariable Long appointmentId,
+            @RequestBody String testsJson
+    ) {
+        return ResponseEntity.ok(
+                appointmentService.updateTests(appointmentId, testsJson)
+        );
+    }
+
+    @PatchMapping("/{appointmentId}/notes")
+    public ResponseEntity<Appointment> updateNotes(
+            @PathVariable Long appointmentId,
+            @RequestBody NotesRequest request
+    ) {
+        return ResponseEntity.ok(
+                appointmentService.updateNotes(appointmentId, request)
+        );
+    }
+
+    /* ================= FINALIZE ================= */
+
+    @PostMapping("/{appointmentId}/finalize")
+    public ResponseEntity<Appointment> finalizeConsultation(
+            @PathVariable Long appointmentId,
+            @RequestParam Long doctorId
+    ) {
+        return ResponseEntity.ok(
+                appointmentService.finalizeConsultation(appointmentId, doctorId)
+        );
     }
 
 
