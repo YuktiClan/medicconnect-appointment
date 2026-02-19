@@ -499,12 +499,6 @@ public class AppointmentSlotService {
         return appointmentRepository.save(appt);
     }
 
-    public Appointment updatePrescription(Long appointmentId, String prescriptionJson) {
-        Appointment appt = getAppointmentForEdit(appointmentId);
-        appt.setPrescription(prescriptionJson);
-        return appointmentRepository.save(appt);
-    }
-
     public Appointment updateTests(Long appointmentId, String testsJson) {
         Appointment appt = getAppointmentForEdit(appointmentId);
         appt.setTests(testsJson);
@@ -547,6 +541,13 @@ public class AppointmentSlotService {
             throw new RuntimeException("Consultation not editable");
         }
         return appt;
+    }
+
+    public AppointmentResponseDTO getAppointmentDetails(Long appointmentId) {
+        Appointment appt = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        return AppointmentMapper.toDto(appt);
     }
 
 }

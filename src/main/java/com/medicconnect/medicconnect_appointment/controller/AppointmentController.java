@@ -174,34 +174,23 @@ public class AppointmentController {
         );
     }
 
-
-    @PatchMapping("/{appointmentId}/prescription")
-    public ResponseEntity<Appointment> updatePrescription(
-            @PathVariable Long appointmentId,
-            @RequestBody String prescriptionJson
-    ) {
-        return ResponseEntity.ok(
-                appointmentService.updatePrescription(appointmentId, prescriptionJson)
-        );
-    }
-
     @PatchMapping("/{appointmentId}/tests")
-    public ResponseEntity<Appointment> updateTests(
+    public ResponseEntity<AppointmentResponseDTO> updateTests(
             @PathVariable Long appointmentId,
             @RequestBody String testsJson
     ) {
         return ResponseEntity.ok(
-                appointmentService.updateTests(appointmentId, testsJson)
+                AppointmentMapper.toDto(appointmentService.updateTests(appointmentId, testsJson))
         );
     }
 
     @PatchMapping("/{appointmentId}/notes")
-    public ResponseEntity<Appointment> updateNotes(
+    public ResponseEntity<AppointmentResponseDTO> updateNotes(
             @PathVariable Long appointmentId,
             @RequestBody NotesRequest request
     ) {
         return ResponseEntity.ok(
-                appointmentService.updateNotes(appointmentId, request)
+                AppointmentMapper.toDto(appointmentService.updateNotes(appointmentId, request))
         );
     }
 
@@ -217,14 +206,15 @@ public class AppointmentController {
         );
     }
 
-    @GetMapping("/fetch/{appointmentId}/diagnosis")
+    @GetMapping("/fetch/{appointmentId}/details")
     public ResponseEntity<AppointmentResponseDTO> fetchDiagnosis(
-            @PathVariable Long appointmentId,
-            @RequestBody String diagnosisJson
+            @PathVariable Long appointmentId
     ) {
         return ResponseEntity.ok(
-                AppointmentMapper.toDto(appointmentService.updateDiagnosis(appointmentId, diagnosisJson))
+                appointmentService.getAppointmentDetails(appointmentId)
         );
     }
+
+
 
 }
