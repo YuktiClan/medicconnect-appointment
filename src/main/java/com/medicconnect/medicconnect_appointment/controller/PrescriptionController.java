@@ -28,6 +28,14 @@ public class PrescriptionController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PrescriptionResponse> getPrescription(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                prescriptionService.getPrescription(id)
+        );
+    }
 
 }
 

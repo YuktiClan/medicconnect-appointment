@@ -174,6 +174,7 @@ public class AppointmentController {
         );
     }
 
+
     @PatchMapping("/{appointmentId}/prescription")
     public ResponseEntity<Appointment> updatePrescription(
             @PathVariable Long appointmentId,
@@ -216,5 +217,14 @@ public class AppointmentController {
         );
     }
 
+    @GetMapping("/fetch/{appointmentId}/diagnosis")
+    public ResponseEntity<AppointmentResponseDTO> fetchDiagnosis(
+            @PathVariable Long appointmentId,
+            @RequestBody String diagnosisJson
+    ) {
+        return ResponseEntity.ok(
+                AppointmentMapper.toDto(appointmentService.updateDiagnosis(appointmentId, diagnosisJson))
+        );
+    }
 
 }

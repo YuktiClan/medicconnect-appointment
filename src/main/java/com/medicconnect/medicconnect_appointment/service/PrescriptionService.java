@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -81,5 +82,32 @@ public class PrescriptionService {
                 .notes(saved.getNotes())
                 .build();
     }
+
+    public PrescriptionResponse getPrescription(Long prescriptionId) {
+
+        Prescription prescription = prescriptionRepository
+                .findByIdWithMedicines(prescriptionId)
+                .orElseThrow(() -> new RuntimeException("Prescription not found"));
+
+        // Convert Medicines to DTO
+        List<CreatePrescriptionRequest.MedicineItemDto> medicineDtos =
+                prescription.getMedicines().stream()
+                        .map(m -> new CreatePrescriptionRequest.MedicineItemDto(
+                                m.getName(),
+                                m.getDosage(),
+                                Objects.nonNull(m.getFrequencyType()) ? m.getFrequencyType().getCode() : null,
+                                m.getDuration(),
+                                Objects.nonNull(m.getMealTime()) ? m.getMealTime().getCode() : null
+                        ))
+                        .toList();
+
+        return PrescriptionResponse.builder()
+                .prescriptionId(prescription.getId())
+                .appointmentId(prescription.getAppointment().getId())
+                .notes(prescription.getNotes())
+                .medicines(medicineDtos)
+                .build();
+    }
+
 }
 

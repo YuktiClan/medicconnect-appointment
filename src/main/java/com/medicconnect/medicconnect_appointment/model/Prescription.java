@@ -27,7 +27,7 @@ public class Prescription {
     @JoinColumn(name = "appointment_id", nullable = false)
     private Appointment appointment;
 
-    @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<MedicineItem> medicines;
 
     private String notes;
