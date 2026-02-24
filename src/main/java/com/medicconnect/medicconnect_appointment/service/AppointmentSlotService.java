@@ -99,6 +99,12 @@ public class AppointmentSlotService {
         appointment.setPatientId(request.getPatientId());
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setStatus(AppointmentStatus.valueOf("PENDING"));
+        appointment.setBloodPressure(Objects.nonNull(request.getBloodPressure()) ? request.getBloodPressure() : "");
+        appointment.setPulse(Objects.nonNull(request.getPulse()) ? request.getPulse() : 0);
+        appointment.setTemperature(Objects.nonNull(request.getTemperature()) ? request.getTemperature() : 0);
+        appointment.setInitialComplaints(Objects.nonNull(request.getInitialComplaints()) ? request.getInitialComplaints() : "");
+        appointment.setBloodGroup(Objects.nonNull(request.getBloodGroup()) ? request.getBloodGroup() : "");
+        appointment.setWeight(Objects.nonNull(request.getWeight()) ? request.getWeight() : 0);
 
         int slotDuration = 15;
         LocalTime selectedStart = null;
@@ -549,6 +555,7 @@ public class AppointmentSlotService {
 
         return AppointmentMapper.toDto(appt);
     }
+
 
 }
 

@@ -64,6 +64,12 @@ public class Appointment {
     private Double temperature;
     private String initialComplaints;
 
+    @Column(name = "blood_group")
+    private String bloodGroup;
+
+    @Column(name = "weight")
+    private Double weight;
+
     /* ================= DOCTOR SECTION ================= */
     @Column(columnDefinition = "TEXT")
     private String symptoms;

@@ -18,5 +18,12 @@ public class CreateAppointmentRequestDTO {
     private LocalDate appointmentDate;
     private LocalTime startTime;
     private LocalTime endTime;
+    private String bloodPressure;   // Example: "120/80"
+    private String bloodGroup;      // Example: "O+"
+    private String initialComplaints;
+    private Double temperature;     // Example: 98.6
+    private Double weight;          // Example: 72.5 (kg)
+    private Integer pulse;          // Example: 72 (bpm)
+
 }
 

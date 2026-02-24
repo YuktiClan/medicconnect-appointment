@@ -2,6 +2,7 @@ package com.medicconnect.medicconnect_appointment.service;
 
 
 import com.medicconnect.medicconnect_appointment.dto.BreakResponseDTO;
+import com.medicconnect.medicconnect_appointment.dto.DoctorScheduleResponseDTO;
 import com.medicconnect.medicconnect_appointment.dto.DoctorScheduleViewDTO;
 import com.medicconnect.medicconnect_appointment.dto.SlotResponseDTO;
 import com.medicconnect.medicconnect_appointment.mapper.DoctorScheduleMapper;
@@ -203,4 +204,35 @@ public class DoctorScheduleService {
         return schedules.size();
     }
 
+    public List<DoctorScheduleResponseDTO> fetchSchedules(Long doctorId) {
+
+        List<DoctorSchedule> schedules =
+                scheduleRepository.findByDoctorIdAndActiveTrue(doctorId);
+
+        return schedules.stream().map(schedule -> {
+
+            DoctorScheduleResponseDTO dto = new DoctorScheduleResponseDTO();
+
+            dto.setId(schedule.getId());
+            dto.setDoctorId(schedule.getDoctorId());
+            dto.setDayOfWeek(schedule.getDayOfWeek().name());
+            dto.setStartTime(schedule.getStartTime().toString());
+            dto.setEndTime(schedule.getEndTime().toString());
+            dto.setSlotDurationMinutes(schedule.getSlotDurationMinutes());
+            dto.setEffectiveFrom(schedule.getEffectiveFrom().toString());
+
+            if (schedule.getEffectiveTo() != null) {
+                dto.setEffectiveTo(schedule.getEffectiveTo().toString());
+            }
+
+            dto.setActive(schedule.getActive());
+
+            if (schedule.getDate() != null) {
+                dto.setDate(schedule.getDate().toString());
+            }
+
+            return dto;
+
+        }).toList();
+    }
 }

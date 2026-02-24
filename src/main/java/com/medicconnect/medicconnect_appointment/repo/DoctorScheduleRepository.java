@@ -23,4 +23,5 @@ public interface DoctorScheduleRepository
             DayOfWeek weekday
     );
 
+
 }

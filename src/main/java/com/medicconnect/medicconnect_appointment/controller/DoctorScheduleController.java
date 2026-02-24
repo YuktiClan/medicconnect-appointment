@@ -62,6 +62,13 @@ public class DoctorScheduleController {
         return ResponseEntity.ok(schedules);
     }
 
+    @GetMapping("/{doctorId}/schedules")
+    public List<DoctorScheduleResponseDTO> fetchSchedules(
+            @PathVariable Long doctorId
+    ) {
+        return scheduleService.fetchSchedules(doctorId);
+    }
+
 
 
     @PostMapping("/{doctorId}/schedule/{scheduleId}/breaks")
