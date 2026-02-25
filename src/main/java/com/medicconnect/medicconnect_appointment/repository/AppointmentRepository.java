@@ -2,6 +2,8 @@ package com.medicconnect.medicconnect_appointment.repository;
 
 import com.medicconnect.medicconnect_appointment.model.Appointment;
 import com.medicconnect.medicconnect_appointment.model.AppointmentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -60,6 +62,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             Long doctorId,
             LocalDate appointmentDate,
             Integer slotNo
+    );
+    List<Appointment> findByPatientIdOrderByAppointmentDateDesc(Long patientId);
+
+    Page<Appointment> findByPatientIdAndStatus(
+            Long patientId,
+            AppointmentStatus status,
+            Pageable pageable
+    );
+
+    Page<Appointment> findByPatientId(
+            Long patientId,
+            Pageable pageable
     );
 
 }

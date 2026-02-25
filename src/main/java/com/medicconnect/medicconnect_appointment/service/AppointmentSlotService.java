@@ -181,17 +181,17 @@ public class AppointmentSlotService {
 
             appointment.setSlotNo((long) generatedSlotNo);
         }
-//        String redisKey = redisLockService.buildKey(
-//                request.getDoctorId(),
-//                request.getAppointmentDate(),
-//                appointment.getSlotNo()
-//        );
-//
-//        boolean lockAcquired = redisLockService.tryLock(redisKey);
-//
-//        if (!lockAcquired) {
-//            throw new RuntimeException("Appointment request already in progress for this slot");
-//        }
+        String redisKey = redisLockService.buildKey(
+                request.getDoctorId(),
+                request.getAppointmentDate(),
+                appointment.getSlotNo()
+        );
+
+        boolean lockAcquired = redisLockService.tryLock(redisKey);
+
+        if (!lockAcquired) {
+            throw new RuntimeException("Appointment request already in progress for this slot");
+        }
 
         // ===== GOOGLE CALENDAR AVAILABILITY CHECK =====
         doctorGoogleAvailabilityService
@@ -400,22 +400,83 @@ public class AppointmentSlotService {
 //        return availableSlots;
 //    }
 
-    public List<AvailableSlotResponse> fetchBookedAppointments(Long doctorId, LocalDate date, String status) {
-        // Fetch all appointments for doctor on this date
-        AppointmentStatus appointmentStatus = Objects.nonNull(status) && !status.isEmpty() ? AppointmentStatus.valueOf(status) : null;
-        List<Appointment> appointments;
-        if (Objects.isNull(date)){
-            appointments = appointmentRepository.findAllAppointmentsByDoctorId(doctorId, appointmentStatus);
-        }else {
-            appointments = appointmentRepository.findAppointments(doctorId, date, appointmentStatus);
-        }
-        log.info("fetching records for doctorId - {} , date- {}, appointmentstatus - {} and records size is - {}", doctorId, date, appointmentStatus, appointments.size() );
+//    public List<AvailableSlotResponse> fetchBookedAppointments(Long doctorId, LocalDate date, String status) {
+//        // Fetch all appointments for doctor on this date
+//        AppointmentStatus appointmentStatus = Objects.nonNull(status) && !status.isEmpty() ? AppointmentStatus.valueOf(status) : null;
+//        List<Appointment> appointments;
+//        if (Objects.isNull(date)){
+//            appointments = appointmentRepository.findAllAppointmentsByDoctorId(doctorId, appointmentStatus);
+//        }else {
+//            appointments = appointmentRepository.findAppointments(doctorId, date, appointmentStatus);
+//        }
+//        log.info("fetching records for doctorId - {} , date- {}, appointmentstatus - {} and records size is - {}", doctorId, date, appointmentStatus, appointments.size() );
+//
+//        // Map to response DTO
+//        return appointments.stream()
+//                .map(appt -> new AvailableSlotResponse( appt.getId(), appt.getStatus().name(), appt.getSlotNo(), appt.getPatientId(), appt.getDoctorId()
+//                ))
+//                .collect(Collectors.toList());
+//    }
 
-        // Map to response DTO
-        return appointments.stream()
-                .map(appt -> new AvailableSlotResponse( appt.getId(), appt.getStatus().name(), appt.getSlotNo(), appt.getPatientId(), appt.getDoctorId()
-                ))
-                .collect(Collectors.toList());
+    public List<AvailableSlotResponse> fetchBookedAppointments(
+            Long doctorId,
+            LocalDate date,
+            String status) {
+
+        AppointmentStatus appointmentStatus =
+                Objects.nonNull(status) && !status.isEmpty()
+                        ? AppointmentStatus.valueOf(status)
+                        : null;
+
+        List<Appointment> appointments;
+
+        if (Objects.isNull(date)) {
+            appointments = appointmentRepository
+                    .findAllAppointmentsByDoctorId(doctorId, appointmentStatus);
+        } else {
+            appointments = appointmentRepository
+                    .findAppointments(doctorId, date, appointmentStatus);
+        }
+
+        log.info("fetching records for doctorId - {} , date- {}, appointmentstatus - {} and records size is - {}",
+                doctorId, date, appointmentStatus, appointments.size());
+
+        //  Get locked slots from Redis
+        Set<Long> lockedSlots = Objects.nonNull(date)
+                ? redisLockService.getLockedSlots(doctorId, date)
+                : Set.of();
+
+        // Convert DB appointments
+        List<AvailableSlotResponse> response =
+                appointments.stream()
+                        .map(appt ->
+                                new AvailableSlotResponse(
+                                        appt.getId(),
+                                        appt.getStatus().name(),
+                                        appt.getSlotNo(),
+                                        appt.getPatientId(),
+                                        appt.getDoctorId()
+                                ))
+                        .collect(Collectors.toList());
+
+        //  Add locked slots (not yet saved in DB)
+        for (Long lockedSlot : lockedSlots) {
+
+            boolean alreadyInDb = response.stream()
+                    .anyMatch(r -> r.getSlotNo().equals(lockedSlot));
+
+            if (!alreadyInDb) {
+                response.add(new AvailableSlotResponse(
+                        null,
+                        "IN_PROGRESS",
+                        lockedSlot,
+                        null,
+                        doctorId
+                ));
+            }
+        }
+
+        return response;
     }
 
     @Transactional

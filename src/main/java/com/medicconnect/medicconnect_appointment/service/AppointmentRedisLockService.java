@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AppointmentRedisLockService {
@@ -35,5 +37,22 @@ public class AppointmentRedisLockService {
     public void release(String key) {
         redisTemplate.delete(key);
     }
+
+    public Set<Long> getLockedSlots(Long doctorId, LocalDate date) {
+
+        String pattern = "lock:doctor:" + doctorId + ":" + date + ":slot:*";
+
+        Set<String> keys = redisTemplate.keys(pattern);
+
+        if (keys == null) return Set.of();
+
+        return keys.stream()
+                .map(key -> {
+                    String[] parts = key.split(":");
+                    return Long.valueOf(parts[parts.length - 1]);
+                })
+                .collect(Collectors.toSet());
+    }
+
 }
 
