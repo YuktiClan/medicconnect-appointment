@@ -31,6 +31,7 @@ public class PrescriptionService {
 
 
 
+    // week or month
     @Transactional
     public PrescriptionResponse createPrescription(CreatePrescriptionRequest request) {
 
@@ -52,14 +53,19 @@ public class PrescriptionService {
         // Convert DTO medicines to entities
         for (CreatePrescriptionRequest.MedicineItemDto dto : request.getMedicines()) {
 
+            List<MealTime> mealTimes = dto.getTime()
+                    .stream()
+                    .map(MealTime::fromCode)
+                    .toList();
             MedicineItem item = MedicineItem.builder()
                     .name(dto.getName())
                     .dosage(dto.getDosage())
 //                    .frequency(dto.getFrequency())
                     .duration(dto.getDuration())
-                    .mealTime(MealTime.fromCode(dto.getTime()))
+                    .mealTime(mealTimes)
                     .frequencyType(FrequencyType.fromCode(dto.getFrequency()))
                     .prescription(prescription)
+                    .instructions(Objects.nonNull(dto.getInstructions()) ? dto.getInstructions() : "")
                     .build();
             prescription.getMedicines().add(item);
         }
@@ -70,7 +76,7 @@ public class PrescriptionService {
         List<CreatePrescriptionRequest.MedicineItemDto> responseMedicines =
                 saved.getMedicines().stream()
                         .map(m -> new CreatePrescriptionRequest.MedicineItemDto(
-                                m.getName(), m.getDosage(), m.getFrequencyType().getCode(), m.getDuration(),m.getMealTime().getCode()
+                                m.getName(), m.getDosage(), m.getFrequencyType().getCode(), m.getDuration(),m.getMealTime().stream().map(MealTime::getCode).toList(), m.getInstructions()
 
                         ))
                         .toList();
@@ -97,7 +103,8 @@ public class PrescriptionService {
                                 m.getDosage(),
                                 Objects.nonNull(m.getFrequencyType()) ? m.getFrequencyType().getCode() : null,
                                 m.getDuration(),
-                                Objects.nonNull(m.getMealTime()) ? m.getMealTime().getCode() : null
+                                Objects.nonNull(m.getMealTime()) ? m.getMealTime().stream().map(MealTime::getCode).toList() : null,
+                                Objects.nonNull(m.getInstructions()) ? m.getInstructions() : ""
                         ))
                         .toList();
 

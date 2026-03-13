@@ -1,11 +1,10 @@
 package com.medicconnect.medicconnect_appointment.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medicconnect.medicconnect_appointment.dto.*;
 import com.medicconnect.medicconnect_appointment.mapper.AppointmentMapper;
 import com.medicconnect.medicconnect_appointment.model.*;
-import com.medicconnect.medicconnect_appointment.repo.AppointmentSlotRepository;
-import com.medicconnect.medicconnect_appointment.repo.DoctorBreakRepository;
-import com.medicconnect.medicconnect_appointment.repo.DoctorScheduleRepository;
+import com.medicconnect.medicconnect_appointment.repo.*;
 import com.medicconnect.medicconnect_appointment.repository.AppointmentRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,6 +40,12 @@ public class AppointmentSlotService {
 
     @Autowired
     private DoctorGoogleAvailabilityService doctorGoogleAvailabilityService;
+
+    @Autowired
+    private DiagnosesRepository diagnosesRepository;
+
+    @Autowired
+    private DiseaseMasterRepository diseaseMasterRepository;
 
     @Transactional
     public List<AppointmentSlot> createSlots(Long doctorId, Long scheduleId) {
@@ -547,6 +553,8 @@ public class AppointmentSlotService {
         appt.setBloodPressure(request.getBloodPressure());
         appt.setPulse(request.getPulse());
         appt.setTemperature(request.getTemperature());
+        appt.setBloodGroup(Objects.nonNull(request.getBloodGroup()) ? request.getBloodGroup() : "");
+        appt.setWeight(Objects.nonNull(request.getWeight()) ? request.getWeight() : 0);
         appt.setInitialComplaints(request.getInitialComplaints());
 
         return appointmentRepository.save(appt);
@@ -554,16 +562,45 @@ public class AppointmentSlotService {
 
     /* ================= DOCTOR ================= */
 
-    public Appointment updateSymptoms(Long appointmentId, String symptomsJson) {
+    public Appointment updateSymptoms(Long appointmentId, List<SymptomDTO> symptoms) {
         Appointment appt = getAppointmentForEdit(appointmentId);
-        appt.setSymptoms(symptomsJson);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String symptomsJson = mapper.writeValueAsString(symptoms);
+
+            appt.setSymptoms(symptomsJson);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to convert symptoms to JSON", e);
+        }
+
         return appointmentRepository.save(appt);
     }
 
-    public Appointment updateDiagnosis(Long appointmentId, String diagnosisJson) {
-        Appointment appt = getAppointmentForEdit(appointmentId);
-        appt.setDiagnosis(diagnosisJson);
-        return appointmentRepository.save(appt);
+    @Transactional
+    public void updateDiagnosis(Long appointmentId, DiagnosisRequest request) {
+        log.info("Diagnosis update started for appointmentId={}", appointmentId);
+        getAppointmentForEdit(appointmentId);
+
+        diagnosesRepository.deleteByAppointmentId(appointmentId);
+        List<AppointmentDiagnosis> list = new ArrayList<>();
+
+        for (DiagnosisDTO d : request.getDiagnoses()) {
+
+             diseaseMasterRepository.findById(d.getCode())
+                    .orElseThrow(() -> new RuntimeException("Invalid disease code: " + d.getCode()));
+            AppointmentDiagnosis entity = new AppointmentDiagnosis();
+
+            entity.setAppointmentId(appointmentId);
+            entity.setDiseaseCode(d.getCode());
+            entity.setDiseaseDescription(d.getDescription());
+            entity.setDiagnosisType(d.getType());
+            entity.setCreatedAt(LocalDateTime.now());
+            list.add(entity);
+        }
+        diagnosesRepository.saveAll(list);
+
+        log.info("Diagnosis update completed for appointmentId={} with {} diagnoses",
+                appointmentId, list.size());
     }
 
     public Appointment updateTests(Long appointmentId, String testsJson) {
@@ -604,7 +641,7 @@ public class AppointmentSlotService {
         Appointment appt = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        if (appt.getStatus() != AppointmentStatus.CHECKED_IN) {
+        if (appt.getStatus() != AppointmentStatus.CHECKED_IN && appt.getStatus() != AppointmentStatus.ARRIVED) {
             throw new RuntimeException("Consultation not editable");
         }
         return appt;

@@ -5,15 +5,17 @@ import com.medicconnect.medicconnect_appointment.dto.PatientTimelineResponse;
 import com.medicconnect.medicconnect_appointment.model.Appointment;
 import com.medicconnect.medicconnect_appointment.model.AppointmentStatus;
 import com.medicconnect.medicconnect_appointment.repository.AppointmentRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
+
 import java.util.Objects;
 
 @Slf4j

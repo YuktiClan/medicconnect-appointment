@@ -16,6 +16,7 @@ public class CreatePrescriptionRequest {
     private String notes;
     private Integer timesPerDay;    // dynamic n
     private List<MedicineItemDto> medicines;
+    //instructions
 
     @Data
     @NoArgsConstructor
@@ -25,7 +26,8 @@ public class CreatePrescriptionRequest {
         private String dosage;
         private Integer frequency;
         private Integer duration;
-        private Integer time;        // meal time code (1–5)
+        private List<Integer> time;        // meal time code (1–5)
+        private String instructions;
 
     }
 }

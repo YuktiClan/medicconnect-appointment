@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -157,20 +158,21 @@ public class AppointmentController {
     @PatchMapping("/{appointmentId}/symptoms")
     public ResponseEntity<AppointmentResponseDTO> updateSymptoms(
             @PathVariable Long appointmentId,
-            @RequestBody String symptomsJson
+             @RequestBody List<SymptomDTO> symptoms
     ) {
         return ResponseEntity.ok(
-                AppointmentMapper.toDto(appointmentService.updateSymptoms(appointmentId, symptomsJson))
+                AppointmentMapper.toDto(appointmentService.updateSymptoms(appointmentId, symptoms))
         );
     }
 
     @PatchMapping("/{appointmentId}/diagnosis")
-    public ResponseEntity<AppointmentResponseDTO> updateDiagnosis(
+    public ResponseEntity<Map<String, String>> updateDiagnosis(
             @PathVariable Long appointmentId,
-            @RequestBody String diagnosisJson
+            @RequestBody DiagnosisRequest diagnosesReq
     ) {
+        appointmentService.updateDiagnosis(appointmentId, diagnosesReq);
         return ResponseEntity.ok(
-                AppointmentMapper.toDto(appointmentService.updateDiagnosis(appointmentId, diagnosisJson))
+                Map.of("message", "Diagnosis saved successfully")
         );
     }
 

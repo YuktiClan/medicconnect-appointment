@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -23,10 +25,12 @@ public class MedicineItem {
     private String name;
     private String dosage;   // e.g., "500mg"
     private String frequency; // e.g., "2 times a day"
+    private String instructions;
     private Integer duration; // in days
 
+    @ElementCollection(targetClass = MealTime.class)
     @Enumerated(EnumType.STRING)
-    private MealTime mealTime;
+    private List<MealTime> mealTime;
 
     @Enumerated(EnumType.STRING)
     private FrequencyType frequencyType;

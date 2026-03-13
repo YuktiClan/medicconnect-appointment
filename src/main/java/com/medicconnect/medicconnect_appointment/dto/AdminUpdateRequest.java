@@ -7,6 +7,8 @@ public class AdminUpdateRequest {
     private String bloodPressure;
     private Integer pulse;
     private Double temperature;
+    private Double weight;
     private String initialComplaints;
+    private String bloodGroup;
 }
 

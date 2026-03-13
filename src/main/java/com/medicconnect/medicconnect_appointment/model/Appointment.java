@@ -29,6 +29,9 @@ public class Appointment {
     @Column(name = "patient_id", nullable = false)
     private Long patientId;
 
+    @Column(name = "location_id", nullable = true)
+    private Long locationId;
+
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
