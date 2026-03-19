@@ -1,6 +1,7 @@
 package com.medicconnect.medicconnect_appointment.controller;
 
 import com.medicconnect.medicconnect_appointment.dto.*;
+import com.medicconnect.medicconnect_appointment.enums.BloodGroup;
 import com.medicconnect.medicconnect_appointment.mapper.AppointmentMapper;
 import com.medicconnect.medicconnect_appointment.model.Appointment;
 import com.medicconnect.medicconnect_appointment.service.AppointmentService;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -82,6 +84,16 @@ public class AppointmentController {
 
 
 
+    @GetMapping("/blood-groups")
+    public ResponseEntity<List<BloodDropdownDTO>> getBloodGroups() {
+
+
+        return ResponseEntity.ok(
+                Arrays.stream(BloodGroup.values())
+                        .map(bg -> new BloodDropdownDTO(bg.name(), bg.getValue()))
+                        .toList()
+        );
+    }
 
         @PostMapping("/{doctorId}/appointments")
         public ResponseEntity<AppointmentResponseDTO> createAppointment(

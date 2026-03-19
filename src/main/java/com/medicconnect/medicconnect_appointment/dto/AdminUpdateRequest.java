@@ -10,5 +10,6 @@ public class AdminUpdateRequest {
     private Double weight;
     private String initialComplaints;
     private String bloodGroup;
+    private String unit;
 }
 

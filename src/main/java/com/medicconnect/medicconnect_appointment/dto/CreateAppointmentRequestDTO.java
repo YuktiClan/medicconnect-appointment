@@ -24,6 +24,8 @@ public class CreateAppointmentRequestDTO {
     private Double temperature;     // Example: 98.6
     private Double weight;          // Example: 72.5 (kg)
     private Integer pulse;          // Example: 72 (bpm)
+    private Long LocationId;
+
 
 }
 

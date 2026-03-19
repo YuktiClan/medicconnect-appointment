@@ -37,6 +37,7 @@ public class AppointmentResponseDTO {
     private Integer pulse;
     private Double temperature;
     private String initialComplaints;
+    private String unit;
 
     /* ================= DOCTOR SECTION ================= */
     private String symptoms;

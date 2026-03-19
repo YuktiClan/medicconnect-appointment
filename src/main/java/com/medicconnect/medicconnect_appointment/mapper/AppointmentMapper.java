@@ -6,6 +6,7 @@ import com.medicconnect.medicconnect_appointment.model.Appointment;
 import com.medicconnect.medicconnect_appointment.model.AppointmentStatus;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class AppointmentMapper {
     public static AppointmentResponseDTO toDto(Appointment a) {
@@ -23,6 +24,7 @@ public class AppointmentMapper {
                 .bloodPressure(a.getBloodPressure() != null ? a.getBloodPressure() : "")
                 .pulse(a.getPulse() != null ? a.getPulse() : 0)
                 .temperature(a.getTemperature() != null ? a.getTemperature() : 0.0)
+                .unit(Objects.nonNull(a.getUnit()) ?a.getUnit() : "")
                 .initialComplaints(a.getInitialComplaints() != null ? a.getInitialComplaints() : "")
                 .symptoms(a.getSymptoms() != null ? a.getSymptoms() : "")
                 .diagnosis(a.getDiagnosis() != null ? a.getDiagnosis() : "")

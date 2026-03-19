@@ -65,6 +65,7 @@ public class Appointment {
     private String bloodPressure;
     private Integer pulse;
     private Double temperature;
+    private String unit;
     private String initialComplaints;
 
     @Column(name = "blood_group")

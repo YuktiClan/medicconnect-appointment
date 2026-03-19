@@ -47,6 +47,9 @@ public class AppointmentSlotService {
     @Autowired
     private DiseaseMasterRepository diseaseMasterRepository;
 
+    @Autowired
+    private DiseaseTrendRepository diseaseTrendRepository;
+
     @Transactional
     public List<AppointmentSlot> createSlots(Long doctorId, Long scheduleId) {
 
@@ -111,6 +114,7 @@ public class AppointmentSlotService {
         appointment.setInitialComplaints(Objects.nonNull(request.getInitialComplaints()) ? request.getInitialComplaints() : "");
         appointment.setBloodGroup(Objects.nonNull(request.getBloodGroup()) ? request.getBloodGroup() : "");
         appointment.setWeight(Objects.nonNull(request.getWeight()) ? request.getWeight() : 0);
+        appointment.setLocationId(Objects.nonNull(request.getLocationId()) ? request.getLocationId() : 0);
 
         int slotDuration = 15;
         LocalTime selectedStart = null;
@@ -553,6 +557,7 @@ public class AppointmentSlotService {
         appt.setBloodPressure(request.getBloodPressure());
         appt.setPulse(request.getPulse());
         appt.setTemperature(request.getTemperature());
+        appt.setUnit(request.getUnit());
         appt.setBloodGroup(Objects.nonNull(request.getBloodGroup()) ? request.getBloodGroup() : "");
         appt.setWeight(Objects.nonNull(request.getWeight()) ? request.getWeight() : 0);
         appt.setInitialComplaints(request.getInitialComplaints());
@@ -579,14 +584,14 @@ public class AppointmentSlotService {
     @Transactional
     public void updateDiagnosis(Long appointmentId, DiagnosisRequest request) {
         log.info("Diagnosis update started for appointmentId={}", appointmentId);
-        getAppointmentForEdit(appointmentId);
+        Appointment appt = getAppointmentForEdit(appointmentId);
 
         diagnosesRepository.deleteByAppointmentId(appointmentId);
         List<AppointmentDiagnosis> list = new ArrayList<>();
 
         for (DiagnosisDTO d : request.getDiagnoses()) {
 
-             diseaseMasterRepository.findById(d.getCode())
+            DiseaseMaster disease = diseaseMasterRepository.findById(d.getCode())
                     .orElseThrow(() -> new RuntimeException("Invalid disease code: " + d.getCode()));
             AppointmentDiagnosis entity = new AppointmentDiagnosis();
 
@@ -596,8 +601,11 @@ public class AppointmentSlotService {
             entity.setDiagnosisType(d.getType());
             entity.setCreatedAt(LocalDateTime.now());
             list.add(entity);
+
+            updateDiseaseTrend(appt.getLocationId(), disease);
         }
         diagnosesRepository.saveAll(list);
+
 
         log.info("Diagnosis update completed for appointmentId={} with {} diagnoses",
                 appointmentId, list.size());
@@ -655,5 +663,31 @@ public class AppointmentSlotService {
     }
 
 
+    private void updateDiseaseTrend(Long locationId, DiseaseMaster disease) {
+
+        Optional<DiseaseTrend> existing =
+                diseaseTrendRepository.findByLocationIdAndDiseaseCode(locationId, disease.getCode());
+
+        DiseaseTrend trend;
+
+        if (existing.isPresent()) {
+
+            trend = existing.get();
+            trend.setCaseCount(trend.getCaseCount() + 1);
+            trend.setUpdatedAt(LocalDateTime.now());
+
+        } else {
+
+            trend = new DiseaseTrend();
+            trend.setLocationId(locationId);
+            trend.setDiseaseCode(disease.getCode());
+            trend.setDiseaseDescription(disease.getDescription());
+            trend.setCaseCount(1);
+            trend.setUpdatedAt(LocalDateTime.now());
+        }
+
+        diseaseTrendRepository.save(trend);
+        log.info("disease-trend updated for diseaseId {}", disease.getCode());
+    }
 }
 
