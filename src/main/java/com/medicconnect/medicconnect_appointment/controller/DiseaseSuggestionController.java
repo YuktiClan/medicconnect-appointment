@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/diseases")
+@RequestMapping("/appointment/api/diseases")
 public class DiseaseSuggestionController {
 
     @Autowired

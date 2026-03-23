@@ -11,7 +11,7 @@ import java.net.URI;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/google")
+@RequestMapping("/appointment/api/google")
 public class GoogleAuthController {
 
     private final GoogleAuthService googleAuthService;
