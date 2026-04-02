@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/doctors")
+@RequestMapping("/appointment/doctors")
 public class DoctorScheduleController {
 
     private final DoctorScheduleService scheduleService;
