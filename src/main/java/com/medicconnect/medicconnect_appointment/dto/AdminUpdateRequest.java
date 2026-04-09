@@ -11,5 +11,7 @@ public class AdminUpdateRequest {
     private String initialComplaints;
     private String bloodGroup;
     private String unit;
+    private String respiratoryRate;
+    private String spo2;
 }
 

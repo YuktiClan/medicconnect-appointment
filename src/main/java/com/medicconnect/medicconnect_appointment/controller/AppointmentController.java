@@ -177,6 +177,15 @@ public class AppointmentController {
         );
     }
 
+    @GetMapping("/{appointmentId}/symptoms")
+    public ResponseEntity<List<SymptomDTO>> getSymptoms(
+            @PathVariable Long appointmentId) {
+
+        List<SymptomDTO> symptoms = appointmentService.getSymptoms(appointmentId);
+
+        return ResponseEntity.ok(symptoms);
+    }
+
     @PatchMapping("/{appointmentId}/diagnosis")
     public ResponseEntity<Map<String, String>> updateDiagnosis(
             @PathVariable Long appointmentId,
@@ -196,6 +205,14 @@ public class AppointmentController {
         return ResponseEntity.ok(
                 AppointmentMapper.toDto(appointmentService.updateTests(appointmentId, testsJson))
         );
+    }
+    @GetMapping("/{appointmentId}/tests")
+    public ResponseEntity<List<TestDto>> getTests(
+            @PathVariable Long appointmentId) {
+
+        List<TestDto> tests = appointmentService.getTests(appointmentId);
+
+        return ResponseEntity.ok(tests);
     }
 
     @PatchMapping("/{appointmentId}/notes")
@@ -221,11 +238,20 @@ public class AppointmentController {
     }
 
     @GetMapping("/fetch/{appointmentId}/details")
-    public ResponseEntity<AppointmentResponseDTO> fetchDiagnosis(
+    public ResponseEntity<AppointmentResponseDTO> fetchDetails(
             @PathVariable Long appointmentId
     ) {
         return ResponseEntity.ok(
                 appointmentService.getAppointmentDetails(appointmentId)
+        );
+    }
+
+    @GetMapping("/fetch/{appointmentId}/diagnoses")
+    public ResponseEntity<List<DiagnosisResponseDTO>> fetchDiagnosis(
+            @PathVariable Long appointmentId
+    ) {
+        return ResponseEntity.ok(
+                appointmentService.getAppointmentDiagnosis(appointmentId)
         );
     }
 

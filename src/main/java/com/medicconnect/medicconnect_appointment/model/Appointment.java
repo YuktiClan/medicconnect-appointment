@@ -71,6 +71,12 @@ public class Appointment {
     @Column(name = "blood_group")
     private String bloodGroup;
 
+    @Column(name = "respiratory_rate")
+    private String respiratoryRate;
+
+    @Column(name = "spo")
+    private String spo2;
+
     @Column(name = "weight")
     private Double weight;
 

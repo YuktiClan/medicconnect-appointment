@@ -32,6 +32,10 @@ public class AppointmentMapper {
                 .tests(a.getTests() != null ? a.getTests() : "")
                 .patientComments(a.getPatientComments() != null ? a.getPatientComments() : "")
                 .doctorNotes(a.getDoctorNotes() != null ? a.getDoctorNotes() : "")
+                .bloodGroup(a.getBloodGroup() != null ? a.getBloodGroup() : "")
+                .weight(a.getWeight() != null ? a.getWeight() : 0)
+                .respiratoryRate(a.getRespiratoryRate() != null ? a.getRespiratoryRate() : String.valueOf(0))
+                .spo2(a.getSpo2() != null ? a.getSpo2() : "")
                 .build();
     }
 }

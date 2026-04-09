@@ -6,6 +6,7 @@ import com.medicconnect.medicconnect_appointment.mapper.AppointmentMapper;
 import com.medicconnect.medicconnect_appointment.model.*;
 import com.medicconnect.medicconnect_appointment.repo.*;
 import com.medicconnect.medicconnect_appointment.repository.AppointmentRepository;
+import com.medicconnect.medicconnect_appointment.utils.JsonUtils;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,9 @@ public class AppointmentSlotService {
 
     @Autowired
     private DiseaseTrendRepository diseaseTrendRepository;
+
+    @Autowired
+    private JsonUtils jsonUtils;
 
     @Transactional
     public List<AppointmentSlot> createSlots(Long doctorId, Long scheduleId) {
@@ -561,6 +565,8 @@ public class AppointmentSlotService {
         appt.setBloodGroup(Objects.nonNull(request.getBloodGroup()) ? request.getBloodGroup() : "");
         appt.setWeight(Objects.nonNull(request.getWeight()) ? request.getWeight() : 0);
         appt.setInitialComplaints(request.getInitialComplaints());
+        appt.setRespiratoryRate(Objects.nonNull(request.getRespiratoryRate()) ? request.getRespiratoryRate() : "");
+        appt.setSpo2(Objects.nonNull(request.getSpo2()) ? request.getSpo2() : "");
 
         return appointmentRepository.save(appt);
     }
@@ -579,6 +585,22 @@ public class AppointmentSlotService {
         }
 
         return appointmentRepository.save(appt);
+    }
+
+    public List<SymptomDTO> getSymptoms(Long appointmentId) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        return jsonUtils.parseSymptoms(appointment.getSymptoms());
+    }
+
+    public List<TestDto> getTests(Long appointmentId) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        return jsonUtils.parseTests(appointment.getTests());
     }
 
     @Transactional
@@ -660,6 +682,25 @@ public class AppointmentSlotService {
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         return AppointmentMapper.toDto(appt);
+    }
+
+    public List<DiagnosisResponseDTO> getAppointmentDiagnosis(Long appointmentId) {
+        Appointment appt = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        List<AppointmentDiagnosis> diagnoses = diagnosesRepository.findByAppointmentId(appointmentId);
+
+        List<DiagnosisResponseDTO> diagnosisDTOs = diagnoses.stream()
+                .map(d -> new DiagnosisResponseDTO(
+                        d.getId(),
+                        d.getDiseaseCode(),
+                        d.getDiseaseDescription(),
+                        d.getDiagnosisType(),
+                        d.getCreatedAt().toString()
+                ))
+                .toList();
+
+        return diagnosisDTOs;
     }
 
 
